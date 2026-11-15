@@ -1,0 +1,256 @@
+<% content_for :title, "Crear visita" %>
+
+<h1 class="h3 mb-3">Crear visita</h1>
+
+<% if @patients.empty? %>
+  <div class="alert alert-secondary">
+    Para crear una visita primero tienes que dar de alta un paciente.
+    <%= link_to "Crear paciente", new_patient_path, class: "alert-link" %>
+  </div>
+<% else %>
+  <%# Asistente en una sola página: los paneles se muestran y ocultan con JS (asistente_visita_controller.js)
+      y nada se guarda hasta pulsar Guardar en el último paso. %>
+  <div data-controller="asistente-visita" data-asistente-visita-panel-inicial-value="<%= @registro.panel_con_errores %>">
+    <%= render "shared/errores", objeto: @registro %>
+
+    <%# Las pestañas solo indican el paso actual: no son clicables. %>
+    <ul class="nav nav-tabs mb-4 user-select-none" id="pasos-asistente">
+      <% [ "Visita", "Diagnóstico", "Sesiones" ].each do |paso| %>
+        <li class="nav-item">
+          <span class="nav-link pe-none" data-asistente-visita-target="pestana"><%= paso %></span>
+        </li>
+      <% end %>
+    </ul>
+
+    <%= form_with model: @registro, scope: :visita, url: crear_visita_path, id: "formulario-visita",
+                  html: { novalidate: true }, data: { action: "submit->asistente-visita#guardar" } do |f| %>
+      <%= f.hidden_field :sesiones_json, data: { asistente_visita_target: "sesionesJson" } %>
+
+      <%# ---------- Panel 1: Visita ---------- %>
+      <section id="panel-visita" data-asistente-visita-target="panel">
+        <div class="card text-bg-dark">
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <%= f.label :patient_id, "Paciente", class: "form-label" %>
+                <%= f.select :patient_id, @patients.map { |patient| [ patient.nombre_completo, patient.id ] },
+                             { include_blank: "Selecciona un paciente…" }, required: true, class: "form-select" %>
+                <div class="invalid-feedback">Elige el paciente de la visita.</div>
+              </div>
+              <div class="col-md-6">
+                <label for="osteopata" class="form-label">Osteópata</label>
+                <input type="text" id="osteopata" class="form-control" readonly
+                       value="<%= current_osteopath.nombre_completo %>">
+              </div>
+              <div class="col-12">
+                <%= f.label :anamnesis, "Anamnesis", class: "form-label" %>
+                <%= f.text_area :anamnesis, rows: 4, class: "form-control" %>
+              </div>
+              <div class="col-sm-6 col-md-3">
+                <%= f.label :escala_dolor, "Escala dolor", class: "form-label" %>
+                <%= f.select :escala_dolor, opciones_escala_dolor, {}, class: "form-select" %>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer d-flex justify-content-end">
+            <button type="button" class="btn btn-success" data-action="asistente-visita#siguiente">Siguiente</button>
+          </div>
+        </div>
+      </section>
+
+      <%# ---------- Panel 2: Diagnóstico ---------- %>
+      <section id="panel-diagnostico" data-asistente-visita-target="panel" hidden>
+        <div class="card text-bg-dark">
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <%= f.label :disease_id, "Enfermedad", class: "form-label" %>
+                <%= f.select :disease_id,
+                             @diseases.map { |disease| [ disease.nombre, disease.id ] } + [ [ "Otra…", RegistroVisita::OTRA_ENFERMEDAD ] ],
+                             { include_blank: "Selecciona una enfermedad…" }, required: true, class: "form-select",
+                             data: { asistente_visita_target: "enfermedad", action: "asistente-visita#cambiarEnfermedad" } %>
+                <div class="invalid-feedback">Elige la enfermedad o «Otra…».</div>
+              </div>
+              <div class="col-md-6" data-asistente-visita-target="grupoNuevaEnfermedad" hidden>
+                <%= f.label :nueva_enfermedad, "Nombre de la nueva enfermedad", class: "form-label" %>
+                <%= f.text_field :nueva_enfermedad, class: "form-control",
+                                                    data: { asistente_visita_target: "nuevaEnfermedad" } %>
+                <div class="invalid-feedback">Escribe el nombre de la enfermedad.</div>
+              </div>
+              <div class="col-12">
+                <%= f.label :descripcion, "Descripción", class: "form-label" %>
+                <%= f.text_area :descripcion, rows: 4, class: "form-control" %>
+              </div>
+              <div class="col-sm-6 col-md-3">
+                <%= f.label :sesiones_recomendadas, "Sesiones recomendadas", class: "form-label" %>
+                <%= f.number_field :sesiones_recomendadas, min: 1, step: 1, required: true, class: "form-control" %>
+                <div class="invalid-feedback">Indica un número entero mayor que 0.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-light" data-action="asistente-visita#anterior">Anterior</button>
+            <button type="button" class="btn btn-success" data-action="asistente-visita#siguiente">Siguiente</button>
+          </div>
+        </div>
+      </section>
+
+      <%# ---------- Panel 3: Sesiones ---------- %>
+      <section id="panel-sesiones" data-asistente-visita-target="panel" hidden>
+        <%# Lista de sesiones %>
+        <div class="card text-bg-dark" data-asistente-visita-target="listaSesiones">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 mb-0">Sesiones</h2>
+              <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-sesion">
+                Nueva sesión
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-dark table-striped align-middle mb-0" id="tabla-sesiones">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Pre</th>
+                    <th>Post</th>
+                    <th>Técnicas aplicadas</th>
+                    <th class="text-center">Ver</th>
+                    <th class="text-center">Borrar</th>
+                  </tr>
+                </thead>
+                <tbody data-asistente-visita-target="filasSesiones"></tbody>
+              </table>
+            </div>
+            <p class="text-body-secondary mt-3 mb-0" data-asistente-visita-target="sinSesiones">
+              Todavía no hay sesiones. Pulsa «Nueva sesión» para añadir una.
+            </p>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-light" data-action="asistente-visita#anterior">Anterior</button>
+            <%= f.submit "Guardar", class: "btn btn-success", id: "guardar-visita" %>
+          </div>
+        </div>
+
+        <%# Subpanel de una sesión (se abre con «Ver») %>
+        <div class="card text-bg-dark" id="detalle-sesion" data-asistente-visita-target="detalleSesion" hidden>
+          <div class="card-body">
+            <h2 class="h5 mb-3" data-asistente-visita-target="tituloDetalle">Sesión</h2>
+            <div class="row g-3 mb-4">
+              <div class="col-sm-4">
+                <label for="detalle-fecha" class="form-label">Fecha</label>
+                <input type="date" id="detalle-fecha" class="form-control" data-asistente-visita-target="detalleFecha"
+                       data-action="asistente-visita#actualizarSesion">
+              </div>
+              <div class="col-sm-4">
+                <label for="detalle-pre" class="form-label">Pre</label>
+                <%= select_tag "detalle-pre", options_for_select(opciones_escala_dolor), id: "detalle-pre", name: nil, class: "form-select",
+                               data: { asistente_visita_target: "detallePre", action: "asistente-visita#actualizarSesion" } %>
+              </div>
+              <div class="col-sm-4">
+                <label for="detalle-post" class="form-label">Post</label>
+                <%= select_tag "detalle-post", options_for_select(opciones_escala_dolor), id: "detalle-post", name: nil, class: "form-select",
+                               data: { asistente_visita_target: "detallePost", action: "asistente-visita#actualizarSesion" } %>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h3 class="h6 mb-0">Técnicas</h3>
+              <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modal-tecnica">
+                Nueva técnica
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm align-middle mb-0" id="tabla-tecnicas">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th class="text-center">Borrar</th>
+                  </tr>
+                </thead>
+                <tbody data-asistente-visita-target="filasTecnicas"></tbody>
+              </table>
+            </div>
+            <p class="text-body-secondary mt-2 mb-0" data-asistente-visita-target="sinTecnicas">
+              Esta sesión todavía no tiene técnicas.
+            </p>
+          </div>
+          <div class="card-footer d-flex justify-content-end">
+            <button type="button" class="btn btn-success" data-action="asistente-visita#cerrarDetalle">Guardar</button>
+          </div>
+        </div>
+      </section>
+    <% end %>
+
+    <%# Modales: fuera del formulario de la visita para que Enter en sus campos no la envíe. %>
+    <div class="modal fade" id="modal-sesion" tabindex="-1" aria-labelledby="titulo-modal-sesion" aria-hidden="true"
+         data-asistente-visita-target="modalSesion">
+      <div class="modal-dialog">
+        <form class="modal-content" data-turbo="false" data-action="asistente-visita#crearSesion">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="titulo-modal-sesion">Introduzca los datos de la nueva sesión</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="nueva-fecha" class="form-label">Fecha</label>
+              <input type="date" id="nueva-fecha" class="form-control" value="<%= Date.current.iso8601 %>"
+                     data-asistente-visita-target="nuevaFecha">
+            </div>
+            <div class="mb-3">
+              <label for="nueva-pre" class="form-label">Escala de dolor presesión</label>
+              <%= select_tag "nueva-pre", options_for_select(opciones_escala_dolor), id: "nueva-pre", name: nil, class: "form-select",
+                             data: { asistente_visita_target: "nuevaPre" } %>
+            </div>
+            <div>
+              <label for="nueva-post" class="form-label">Escala de dolor postsesión</label>
+              <%= select_tag "nueva-post", options_for_select(opciones_escala_dolor), id: "nueva-post", name: nil, class: "form-select",
+                             data: { asistente_visita_target: "nuevaPost" } %>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cerrar</button>
+            <button type="submit" class="btn btn-success">Crear sesión</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modal-tecnica" tabindex="-1" aria-labelledby="titulo-modal-tecnica" aria-hidden="true"
+         data-asistente-visita-target="modalTecnica">
+      <div class="modal-dialog">
+        <form class="modal-content" data-turbo="false" data-action="asistente-visita#crearTecnica">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="titulo-modal-tecnica">Introduzca los datos de la nueva técnica</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="tecnica-nombre" class="form-label">Nombre técnica</label>
+              <input type="text" id="tecnica-nombre" class="form-control" required list="catalogo-tecnicas"
+                     autocomplete="off" data-asistente-visita-target="tecnicaNombre">
+              <div class="form-text">Puedes elegir una técnica del catálogo o escribir una nueva.</div>
+              <div class="invalid-feedback" data-asistente-visita-target="avisoTecnica">
+                Esa técnica ya está añadida a la sesión.
+              </div>
+            </div>
+            <div>
+              <label for="tecnica-descripcion" class="form-label">Descripción (opcional)</label>
+              <textarea id="tecnica-descripcion" rows="3" class="form-control"
+                        data-asistente-visita-target="tecnicaDescripcion"></textarea>
+            </div>
+            <datalist id="catalogo-tecnicas">
+              <% @nombres_tecnicas.each do |nombre| %>
+                <option value="<%= nombre %>"></option>
+              <% end %>
+            </datalist>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cerrar</button>
+            <button type="submit" class="btn btn-success">Crear técnica</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% end %>

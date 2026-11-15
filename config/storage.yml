@@ -1,0 +1,12 @@
+# Almacenamiento de los ficheros escaneados de las pruebas complementarias (Active Storage).
+# Los ficheros son privados: no tienen URL pública y solo se descargan a través de la aplicación (D72).
+
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+# Desarrollo y producción: carpeta storage/ del proyecto (fuera de Git). En producción debe ser un
+# volumen persistente, con copias de seguridad y cifrado en disco (ver README, «Producción»).
+local:
+  service: Disk
+  root: <%= ENV.fetch("STORAGE_PATH") { Rails.root.join("storage") } %>

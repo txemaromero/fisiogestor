@@ -1,0 +1,35 @@
+<%# Título y resumen de un caso clínico, que escribe el osteópata (D89), y la confirmación de que no
+    identifican al paciente (se pide al publicar y cada vez que se edita). %>
+<%= form_with model: caso, url: caso.new_record? ? diagnosis_caso_path(caso.diagnosis) : caso_path(caso),
+              id: "formulario-caso" do |f| %>
+  <%= render "shared/errores", objeto: caso %>
+
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <div class="mb-3">
+        <%= f.label :titulo, "Título", class: "form-label" %>
+        <%= f.text_field :titulo, maxlength: 120, class: clase_campo(caso, :titulo),
+                                  placeholder: "Por ejemplo: Lumbalgia que no mejora tras tres sesiones" %>
+      </div>
+      <div class="mb-3">
+        <%= f.label :resumen, "Resumen", class: "form-label" %>
+        <%= f.text_area :resumen, rows: 8, maxlength: 4000, class: clase_campo(caso, :resumen),
+                                  aria: { describedby: "ayuda-resumen" } %>
+        <div class="form-text" id="ayuda-resumen">
+          Cuenta el caso y qué quieres consultar. No escribas nombres, fechas, lugares, la profesión ni nada que
+          permita reconocer al paciente: la anamnesis y la descripción del diagnóstico no se publican.
+        </div>
+      </div>
+      <div class="form-check">
+        <%= f.check_box :confirmacion_anonimato, class: "form-check-input #{'is-invalid' if caso.errors[:confirmacion_anonimato].any?}" %>
+        <%= f.label :confirmacion_anonimato, "Confirmo que el título y el resumen no identifican al paciente",
+                    class: "form-check-label" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit caso.new_record? ? "Publicar" : "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", caso.new_record? ? visit_path(caso.diagnosis.visit) : caso_path(caso), class: "btn btn-outline-light" %>
+  </div>
+<% end %>

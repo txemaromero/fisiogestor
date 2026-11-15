@@ -1,0 +1,5 @@
+irm_pepe:
+  visit: visita_pepe
+  tipo_prueba: irm
+  resumen: Protrusión discal L4-L5 sin compromiso radicular.
+  escaneado: irm_pepe_campos.pdf

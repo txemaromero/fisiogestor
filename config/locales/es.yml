@@ -1,0 +1,188 @@
+es:
+  activerecord:
+    models:
+      osteopath:
+        one: Osteópata
+        other: Osteópatas
+      patient:
+        one: Paciente
+        other: Pacientes
+      family_medical_background:
+        one: Antecedente familiar
+        other: Antecedentes familiares
+      personal_medical_background:
+        one: Antecedente personal
+        other: Antecedentes personales
+      visit:
+        one: Visita
+        other: Visitas
+      examination:
+        one: Exploración
+        other: Exploraciones
+      supplementary_test:
+        one: Prueba complementaria
+        other: Pruebas complementarias
+      diagnosis:
+        one: Diagnóstico
+        other: Diagnósticos
+      disease:
+        one: Enfermedad
+        other: Enfermedades
+      session:
+        one: Sesión
+        other: Sesiones
+      treatment:
+        one: Técnica
+        other: Técnicas
+      caso:
+        one: Caso clínico
+        other: Casos clínicos
+      comentario:
+        one: Comentario
+        other: Comentarios
+      denuncia:
+        one: Denuncia
+        other: Denuncias
+
+    attributes:
+      osteopath:
+        nombre: Nombre
+        apellidos: Apellidos
+        email: Email
+        password: Clave
+        password_confirmation: Confirmación de la clave
+        reset_password_token: El enlace para cambiar la clave
+        confirmation_token: El enlace para confirmar el email
+        numero_colegiado: Número de colegiado
+        especialidad: Especialidad
+        ciudad: Ciudad
+        presentacion: Presentación
+      patient:
+        nombre: Nombre
+        apellidos: Apellidos
+        anyo_nacimiento: Año de nacimiento
+        sexo: Sexo
+        osteopath: Osteópata
+      family_medical_background:
+        familiar: Familiar
+        tipo: Tipo
+        descripcion: Descripción
+        patient: Paciente
+      personal_medical_background:
+        tipo: Tipo
+        descripcion: Descripción
+        patient: Paciente
+      # Errores de los antecedentes anidados en el formulario del paciente.
+      patient/family_medical_backgrounds:
+        familiar: "Antecedente familiar: familiar"
+        tipo: "Antecedente familiar: tipo"
+        descripcion: "Antecedente familiar: descripción"
+      patient/personal_medical_backgrounds:
+        tipo: "Antecedente personal: tipo"
+        descripcion: "Antecedente personal: descripción"
+      visit:
+        fecha: Fecha
+        anamnesis: Anamnesis
+        escala_dolor: Escala de dolor
+        motivo: Motivo
+        patient: Paciente
+        osteopath: Osteópata
+      examination:
+        inspeccion_estatica: Inspección estática
+        inspeccion_dinamica: Inspección dinámica
+        disfunciones_somaticas: Disfunciones somáticas
+        examen_craneal_forma: Examen craneal - forma
+        examen_craneal_fijaciones: Examen craneal - fijaciones
+        examen_craneal_musculos: Examen craneal - músculos
+        examen_visceral_palpacion: Examen visceral - palpación
+        examen_visceral_dermalgias: Examen visceral - dermalgias
+        examen_visceral_fijaciones: Examen visceral - fijaciones
+        examen_ortopedico_test: Examen ortopédico - test
+        examen_ortopedico_testing_muscular: Examen ortopédico - testing muscular
+        examen_neurologico_reflejos: Examen neurológico - reflejos
+        examen_neurologico_central: Examen neurológico - central
+        examen_neurologico_periferico: Examen neurológico - periférico
+        examen_neurologico_pulsos: Examen neurológico - pulsos
+        examen_neurologico_auscultacion: Examen neurológico - auscultación
+        examen_cardiovascular_tension_arterial: Examen cardiovascular - tensión arterial
+      supplementary_test:
+        tipo_prueba: Tipo de prueba
+        resumen: Resumen
+        escaneado: Escaneado
+        archivo: Fichero escaneado
+      diagnosis:
+        sesiones_recomendadas: Sesiones recomendadas
+        descripcion: Descripción
+        disease: Enfermedad
+        visit: Visita
+      disease:
+        nombre: Nombre
+        descripcion: Descripción
+      session:
+        fecha: Fecha
+        escala_dolor_pre_sesion: Escala de dolor presesión
+        escala_dolor_post_sesion: Escala de dolor postsesión
+        diagnosis: Diagnóstico
+      treatment:
+        nombre: Nombre técnica
+        descripcion: Descripción
+      caso:
+        titulo: Título
+        resumen: Resumen
+        diagnosis: Diagnóstico
+        diagnosis_id: Diagnóstico
+        osteopath: Osteópata
+        confirmacion_anonimato: La confirmación de que no identifican al paciente
+      comentario:
+        texto: Comentario
+        treatments: Técnicas sugeridas
+      denuncia:
+        motivo: Motivo
+
+  # Etiquetas legibles de las enumeraciones (sex_type, background_type, test_type).
+  enums:
+    sex_type:
+      hombre: Hombre
+      mujer: Mujer
+    background_type:
+      musculo_esqueleticos: Músculo-esqueléticos
+      cardio_respiratorios: Cardio-respiratorios
+      digestivos: Digestivos
+      genito_urinarios: Génito-urinarios
+      endocrinos: Endocrinos
+      neurologicos: Neurológicos
+    test_type:
+      analitica: Analítica
+      rx: RX
+      irm: IRM
+      otra: Otra
+
+  # Mensajes de la recuperación de la clave y de la confirmación del email (D103): los de devise-i18n dicen
+  # «contraseña» y mezclan «usted» y «tú»; la aplicación usa «clave» y «tú».
+  devise:
+    registrations:
+      signed_up_but_unconfirmed: "Te hemos enviado un correo con un enlace para confirmar tu email. Ábrelo para activar tu cuenta: hasta entonces no puedes entrar."
+    confirmations:
+      confirmed: Tu email está confirmado. Ya puedes iniciar sesión.
+      send_paranoid_instructions: "Si ese email tiene una cuenta sin confirmar, recibirás en unos minutos un correo con un enlace para confirmarlo."
+    failure:
+      unconfirmed: "Antes de entrar tienes que confirmar tu email con el enlace del correo que te enviamos al registrarte."
+      # Con la clave incorrecta, el mismo mensaje exista o no la cuenta (modo paranoico).
+      invalid: "%{authentication_keys} o clave incorrectos."
+      not_found_in_database: "%{authentication_keys} o clave incorrectos."
+    passwords:
+      send_paranoid_instructions: "Si ese email tiene una cuenta, recibirás en unos minutos un correo con un enlace para elegir una clave nueva."
+      updated: Tu clave se ha cambiado y has iniciado sesión.
+      updated_not_active: Tu clave se ha cambiado. Ya puedes iniciar sesión.
+      no_token: "Solo se puede llegar a esta página con el enlace del correo para cambiar la clave. Comprueba que has copiado el enlace completo."
+    mailer:
+      reset_password_instructions:
+        subject: Cambiar la clave de RedSocialFisios
+      confirmation_instructions:
+        subject: Confirma tu email en RedSocialFisios
+
+  errors:
+    messages:
+      expired: "ha caducado: pide uno nuevo"
+      already_confirmed: "ya está confirmado: inicia sesión"
+      confirmation_period_expired: "no se confirmó a tiempo (el enlace caduca a los %{period}): pide otro correo"

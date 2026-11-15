@@ -1,0 +1,26 @@
+diag_juan:
+  visit: visita_juan
+  disease: lumbago
+  sesiones_recomendadas: 3
+  descripcion: Contractura lumbar aguda.
+
+diag_maria_torres:
+  visit: visita_maria_torres
+  disease: ciatica
+  sesiones_recomendadas: 2
+
+diag_pepe:
+  visit: visita_pepe
+  disease: hernia_discal
+  sesiones_recomendadas: 4
+  descripcion: Protrusión L4-L5.
+
+diag_maria_perez:
+  visit: visita_maria_perez
+  disease: lumbago
+  sesiones_recomendadas: 2
+
+diag_antonio:
+  visit: visita_antonio
+  disease: ciatica
+  sesiones_recomendadas: 3

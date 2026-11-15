@@ -1,0 +1,51 @@
+<% content_for :title, "Catálogo" %>
+
+<h1 class="h3 mb-1">Catálogo</h1>
+<p class="text-body-secondary mb-4">
+  Técnicas y enfermedades que comparten todos los osteópatas. Los cambios afectan a todas las visitas e
+  informes de la plataforma. Para unir dos entradas que son la misma, fusiona la que sobra con la buena.
+</p>
+
+<%= render "catalogo/inicio/tabla", id: "tecnicas", titulo: "Técnicas", entradas: @tecnicas,
+                                    duplicados: @duplicados_tecnicas, columna_usos: "Sesiones",
+                                    editar: ->(entrada) { edit_catalogo_tecnica_path(entrada) },
+                                    fusion: ->(entrada) { fusion_catalogo_tecnica_path(entrada) },
+                                    borrar: ->(entrada) { catalogo_tecnica_path(entrada) } %>
+
+<%= render "catalogo/inicio/tabla", id: "enfermedades", titulo: "Enfermedades", entradas: @enfermedades,
+                                    duplicados: @duplicados_enfermedades, columna_usos: "Diagnósticos",
+                                    editar: ->(entrada) { edit_catalogo_enfermedad_path(entrada) },
+                                    fusion: ->(entrada) { fusion_catalogo_enfermedad_path(entrada) },
+                                    borrar: ->(entrada) { catalogo_enfermedad_path(entrada) } %>
+
+<section id="fusiones" class="mb-4">
+  <h2 class="h5">Últimas fusiones</h2>
+  <% if @fusiones.any? %>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Fusión</th>
+            <th class="text-end">Usos movidos</th>
+            <th>Hecha por</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @fusiones.each do |fusion| %>
+            <tr>
+              <td><%= l(fusion.created_at.to_date) %></td>
+              <td><%= fusion.tipo_legible %></td>
+              <td>«<%= fusion.origen_nombre %>» → «<%= fusion.destino_nombre %>»</td>
+              <td class="text-end"><%= fusion.usos %></td>
+              <td><%= fusion.osteopath&.nombre_completo || "—" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-body-secondary">Todavía no se ha fusionado ninguna entrada.</p>
+  <% end %>
+</section>

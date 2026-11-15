@@ -1,0 +1,9 @@
+juan_rodilla:
+  patient: juan
+  tipo: musculo_esqueleticos
+  descripcion: Condromalacia rotuliana
+
+maria_perez_tiroides:
+  patient: maria_perez
+  tipo: endocrinos
+  descripcion: Hipotiroidismo

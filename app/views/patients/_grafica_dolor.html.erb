@@ -1,0 +1,89 @@
+<%# Gráfica «Evolución del dolor» de la ficha, del informe de la visita y de los casos clínicos, en estos sin
+    fechas (datos y geometría en GraficaDolor). Una columna por sesión:
+    el punto oscuro es el dolor antes de la sesión y el claro el de después, unidos por un tramo. Solo se
+    rotulan la cifra con la que empieza y la última; el resto está en el tooltip (grafica_dolor_controller.js),
+    también con el teclado, y en la tabla de debajo. SVG sin estilos inline: los colores están en application.scss. %>
+<div class="grafica-dolor" data-controller="grafica-dolor">
+  <ul class="list-inline small text-body-secondary mb-2" id="leyenda-grafica-dolor">
+    <li class="list-inline-item me-3"><span class="marca marca-antes"></span>Antes de la sesión</li>
+    <li class="list-inline-item"><span class="marca marca-despues"></span>Después de la sesión</li>
+  </ul>
+
+  <svg viewBox="0 0 <%= GraficaDolor::ANCHO %> <%= GraficaDolor::ALTO %>" role="group"
+       aria-labelledby="titulo-grafica-dolor" aria-describedby="leyenda-grafica-dolor">
+    <title id="titulo-grafica-dolor"><%= grafica.resumen %></title>
+
+    <% grafica.marcas_y.each do |valor, y| %>
+      <line class="<%= valor.zero? ? "eje-base" : "rejilla" %>" x1="<%= grafica.izquierda %>" x2="<%= grafica.derecha %>"
+            y1="<%= y %>" y2="<%= y %>"/>
+      <text class="eje-texto" x="<%= grafica.izquierda - 10 %>" y="<%= y %>" text-anchor="end"
+            dominant-baseline="middle"><%= valor %></text>
+    <% end %>
+
+    <% grafica.puntos.each do |punto| %>
+      <% if punto.fecha_eje %>
+        <text class="eje-texto" x="<%= punto.x %>" y="<%= grafica.base + 22 %>" text-anchor="middle"><%= punto.fecha_eje %></text>
+      <% end %>
+      <% if punto.y_antes && punto.y_despues %>
+        <line class="tramo" x1="<%= punto.x %>" x2="<%= punto.x %>" y1="<%= punto.y_antes %>" y2="<%= punto.y_despues %>"/>
+      <% end %>
+      <% if punto.y_antes %>
+        <circle class="punto punto-antes" cx="<%= punto.x %>" cy="<%= punto.y_antes %>" r="5"/>
+      <% end %>
+      <% if punto.y_despues %>
+        <circle class="punto punto-despues" cx="<%= punto.x %>" cy="<%= punto.y_despues %>" r="5"/>
+      <% end %>
+    <% end %>
+
+    <% x, y, valor = grafica.inicio %>
+    <text class="etiqueta" x="<%= x %>" y="<%= y - 12 %>" text-anchor="middle"><%= valor %></text>
+    <% x, y, valor = grafica.fin %>
+    <text class="etiqueta" x="<%= x + 10 %>" y="<%= y %>" dominant-baseline="middle"><%= valor %></text>
+
+    <%# Zonas de cada columna, encima de todo: reciben el ratón y el foco del teclado. %>
+    <% grafica.puntos.each do |punto| %>
+      <% fecha = grafica.momento(punto.sesion) || "Sin fecha" %>
+      <rect class="zona" x="<%= (punto.x - grafica.ancho_columna / 2).round(1) %>" y="<%= grafica.arriba %>"
+            width="<%= grafica.ancho_columna.round(1) %>" height="<%= grafica.base - grafica.arriba %>"
+            tabindex="0" role="img"
+            aria-label="<%= "Sesión #{punto.numero}, #{fecha}, #{punto.enfermedad}: dolor #{punto.antes || 'sin dato'} antes y #{punto.despues || 'sin dato'} después" %>"
+            data-fecha="<%= fecha %>" data-enfermedad="<%= punto.enfermedad %>"
+            data-antes="<%= punto.antes || "—" %>" data-despues="<%= punto.despues || "—" %>"
+            data-action="mouseenter->grafica-dolor#mostrar mouseleave->grafica-dolor#ocultar focus->grafica-dolor#mostrar blur->grafica-dolor#ocultar"/>
+    <% end %>
+  </svg>
+
+  <div class="grafica-tooltip" data-grafica-dolor-target="tooltip" hidden>
+    <div><span class="clave clave-antes"></span><strong data-grafica-dolor-target="antes"></strong> antes</div>
+    <div><span class="clave clave-despues"></span><strong data-grafica-dolor-target="despues"></strong> después</div>
+    <div class="detalle" data-grafica-dolor-target="detalle"></div>
+  </div>
+
+  <details class="mt-2">
+    <summary class="small text-body-secondary">Ver los datos en una tabla</summary>
+    <div class="table-responsive mt-2">
+      <table class="table table-dark table-sm align-middle mb-0" id="tabla-evolucion-dolor">
+        <thead>
+          <tr>
+            <th>Sesión</th>
+            <th><%= grafica.anonima? ? "Día" : "Fecha" %></th>
+            <th>Diagnóstico</th>
+            <th class="text-end">Antes</th>
+            <th class="text-end">Después</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% grafica.puntos.each do |punto| %>
+            <tr>
+              <td><%= punto.numero %></td>
+              <td><%= valor_o_guion(grafica.momento(punto.sesion)) %></td>
+              <td><%= punto.enfermedad %></td>
+              <td class="text-end"><%= valor_o_guion(punto.antes) %></td>
+              <td class="text-end"><%= valor_o_guion(punto.despues) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>

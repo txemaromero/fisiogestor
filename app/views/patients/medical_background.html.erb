@@ -1,0 +1,63 @@
+<% content_for :title, "Mostrar antecedentes" %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <h1 class="h3 mb-1">Mostrar antecedentes</h1>
+    <p class="text-body-secondary mb-0" id="resumen-paciente">
+      <%# Misma regla de privacidad que la ficha: el nombre solo lo ve el osteópata del paciente. %>
+      <% if @patient.pertenece_a?(current_osteopath) %>
+        <%= @patient.nombre_completo %> ·
+      <% end %>
+      <%= etiqueta_enum(:sex_type, @patient.sexo) %>, <%= @patient.edad %> años
+    </p>
+  </div>
+  <%= link_to "Volver al paciente", ruta_ficha(@patient), class: "btn btn-outline-light" %>
+</div>
+
+<h2 class="h5">Antecedentes familiares</h2>
+<div class="table-responsive mb-4">
+  <table class="table table-dark table-striped align-middle" id="antecedentes-familiares">
+    <thead>
+      <tr>
+        <th>Familiar</th>
+        <th>Tipo</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @patient.family_medical_backgrounds.each do |antecedente| %>
+        <tr>
+          <td><%= antecedente.familiar %></td>
+          <td><%= etiqueta_enum(:background_type, antecedente.tipo) %></td>
+          <td><%= antecedente.descripcion %></td>
+        </tr>
+      <% end %>
+      <% if @patient.family_medical_backgrounds.empty? %>
+        <tr><td colspan="3" class="text-body-secondary">Sin antecedentes familiares.</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="h5">Antecedentes personales</h2>
+<div class="table-responsive">
+  <table class="table table-dark table-striped align-middle" id="antecedentes-personales">
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @patient.personal_medical_backgrounds.each do |antecedente| %>
+        <tr>
+          <td><%= etiqueta_enum(:background_type, antecedente.tipo) %></td>
+          <td><%= antecedente.descripcion %></td>
+        </tr>
+      <% end %>
+      <% if @patient.personal_medical_backgrounds.empty? %>
+        <tr><td colspan="2" class="text-body-secondary">Sin antecedentes personales.</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

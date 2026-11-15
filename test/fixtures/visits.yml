@@ -1,0 +1,39 @@
+visita_juan:
+  patient: juan
+  osteopath: paco
+  fecha: 2026-03-10
+  anamnesis: Dolor lumbar tras cargar peso en una mudanza.
+  escala_dolor: 8
+  motivo: Dolor lumbar
+
+visita_maria_torres:
+  patient: maria_torres
+  osteopath: paco
+  fecha: 2026-04-02
+  anamnesis: Dolor que baja por la pierna izquierda.
+  escala_dolor: 6
+  motivo: Dolor en la pierna
+
+visita_pepe:
+  patient: pepe
+  osteopath: paco
+  fecha: 2026-05-15
+  anamnesis: Hormigueo en la pierna y dolor lumbar intenso.
+  escala_dolor: 9
+  motivo: Dolor lumbar irradiado
+
+visita_maria_perez:
+  patient: maria_perez
+  osteopath: maria
+  fecha: 2026-02-20
+  anamnesis: Dolor lumbar tras muchas horas sentada.
+  escala_dolor: 7
+  motivo: Dolor de espalda
+
+visita_antonio:
+  patient: antonio
+  osteopath: maria
+  fecha: 2026-06-01
+  anamnesis: Dolor en el glúteo que baja por la pierna.
+  escala_dolor: 6
+  motivo: Dolor en la pierna

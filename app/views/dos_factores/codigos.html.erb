@@ -1,0 +1,24 @@
+<% content_for :title, "Códigos de recuperación" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <h1 class="h3 mb-2">Códigos de recuperación</h1>
+    <p>
+      Si pierdes el móvil, podrás entrar con uno de estos códigos en lugar del de la app. Cada código sirve
+      <strong>una sola vez</strong>. Guárdalos en un lugar seguro (por ejemplo, en tu gestor de contraseñas):
+      <strong>no se volverán a mostrar</strong>.
+    </p>
+
+    <div class="card text-bg-dark mb-3">
+      <div class="card-body">
+        <ul class="list-unstyled row row-cols-2 g-2 mb-0 font-monospace fs-5 user-select-all" id="codigos-recuperacion">
+          <% @codigos.each do |codigo| %>
+            <li class="col"><%= codigo %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+
+    <%= link_to "He guardado los códigos", root_path, class: "btn btn-success" %>
+  </div>
+</div>

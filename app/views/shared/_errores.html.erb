@@ -1,0 +1,11 @@
+<%# Resumen de los errores de validación de un formulario. Uso: render "shared/errores", objeto: @patient %>
+<% if objeto.errors.any? %>
+  <div class="alert alert-danger" id="errores" role="alert">
+    <p class="fw-semibold mb-2">No se ha podido guardar. Revisa los siguientes errores:</p>
+    <ul class="mb-0">
+      <% objeto.errors.full_messages.each do |mensaje| %>
+        <li><%= mensaje %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

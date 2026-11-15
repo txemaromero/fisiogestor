@@ -1,0 +1,19 @@
+# Solid Cache (D98): la caché de producción, en una tabla (solid_cache_entries) de la misma base de datos.
+# Sin «database:», usa la conexión principal. Guarda sobre todo los contadores de los límites de intentos,
+# que así son comunes a todos los procesos y servidores. En desarrollo y test se usa la caché en memoria
+# (config/environments).
+default: &default
+  store_options:
+    # Los contadores duran minutos u horas; nada en la caché necesita más de una semana.
+    max_age: <%= 7.days.to_i %>
+    max_size: <%= 256.megabytes %>
+    namespace: <%= Rails.env %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

@@ -1,0 +1,6 @@
+<% content_for :title, "Añadir diagnóstico" %>
+
+<h1 class="h3 mb-1">Añadir diagnóstico</h1>
+<p class="text-body-secondary mb-4">Visita del <%= fecha_o_guion(@visit.fecha) %> · <%= @visit.patient.nombre_completo %></p>
+
+<%= render "form", diagnosis: @diagnosis %>

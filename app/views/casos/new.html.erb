@@ -1,0 +1,15 @@
+<% content_for :title, "Publicar como caso clínico" %>
+
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <h1 class="h3 mb-2">Publicar como caso clínico</h1>
+    <p class="text-body-secondary">
+      Lo verán los osteópatas verificados de la plataforma, que podrán comentarlo y sugerir técnicas. Además del
+      título y el resumen que escribas, se publica esto (sin nombre, sin fechas y con la edad en tramos), y se
+      actualiza si añades sesiones. Si el paciente retira el consentimiento, el caso deja de verse.
+    </p>
+
+    <%= render "casos/datos_clinicos", caso: @caso, grafica: @grafica %>
+    <%= render "formulario", caso: @caso %>
+  </div>
+</div>

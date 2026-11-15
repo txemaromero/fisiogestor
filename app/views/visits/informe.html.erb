@@ -1,0 +1,137 @@
+<% content_for :title, "Informe de la visita" %>
+<% paciente = @visit.patient %>
+<% diagnosticos = @visit.diagnoses.includes(:disease, sessions: :treatments).order(:id) %>
+<% tecnicas = diagnosticos.flat_map(&:tecnicas_aplicadas).uniq.sort_by(&:nombre) %>
+
+<%# Barra que solo se ve en pantalla. %>
+<div class="no-imprimir d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 p-3 rounded bg-body-tertiary"
+     data-controller="imprimir">
+  <span class="small text-body-secondary">
+    Informe para entregar al paciente. Para guardarlo como PDF, elige «Guardar como PDF» como impresora.
+  </span>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-success" data-action="imprimir#imprimir">Imprimir o guardar como PDF</button>
+    <%= link_to "Volver a la visita", visit_path(@visit), class: "btn btn-outline-secondary" %>
+  </div>
+</div>
+
+<article id="informe-visita">
+  <header class="d-flex flex-wrap justify-content-between align-items-start gap-3 border-bottom pb-3 mb-4">
+    <div>
+      <p class="text-success fw-bold mb-1">RedSocialFisios</p>
+      <h1 class="h3 mb-0">Informe de la visita del <%= fecha_o_guion(@visit.fecha) %></h1>
+    </div>
+    <div class="small text-md-end">
+      <div><strong>Osteópata:</strong> <%= @visit.osteopath.nombre_completo %></div>
+      <div><%= @visit.osteopath.email %></div>
+    </div>
+  </header>
+
+  <section class="mb-4 evitar-corte" id="informe-paciente">
+    <h2 class="h5">Paciente</h2>
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Nombre</dt>
+      <dd class="col-sm-9"><%= paciente.nombre_completo %></dd>
+      <dt class="col-sm-3">Edad</dt>
+      <dd class="col-sm-9"><%= paciente.edad %> años</dd>
+      <dt class="col-sm-3">Sexo</dt>
+      <dd class="col-sm-9 mb-0"><%= etiqueta_enum(:sex_type, paciente.sexo) %></dd>
+    </dl>
+  </section>
+
+  <section class="mb-4 evitar-corte" id="informe-consulta">
+    <h2 class="h5">Consulta</h2>
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Motivo</dt>
+      <dd class="col-sm-9"><%= valor_o_guion(@visit.motivo) %></dd>
+      <dt class="col-sm-3">Dolor al llegar</dt>
+      <dd class="col-sm-9"><%= @visit.escala_dolor ? "#{@visit.escala_dolor} sobre 10" : "—" %></dd>
+      <dt class="col-sm-3">Anamnesis</dt>
+      <dd class="col-sm-9 mb-0"><%= @visit.anamnesis.present? ? simple_format(@visit.anamnesis, class: "mb-0") : "—" %></dd>
+    </dl>
+  </section>
+
+  <% diagnosticos.each do |diagnostico| %>
+    <section class="mb-4" id="informe-<%= dom_id(diagnostico) %>">
+      <h2 class="h5">Diagnóstico: <%= diagnostico.disease.nombre %></h2>
+      <% if diagnostico.descripcion.present? %>
+        <p class="mb-1"><%= diagnostico.descripcion %></p>
+      <% end %>
+      <p class="small text-body-secondary"><%= texto_progreso(diagnostico) %></p>
+      <% if diagnostico.sessions.any? %>
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Sesión</th>
+              <th>Fecha</th>
+              <th class="text-end">Dolor antes</th>
+              <th class="text-end">Dolor después</th>
+              <th>Técnicas aplicadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% diagnostico.sessions.each.with_index(1) do |sesion, numero| %>
+              <tr>
+                <td><%= numero %></td>
+                <td><%= fecha_o_guion(sesion.fecha) %></td>
+                <td class="text-end"><%= valor_o_guion(sesion.escala_dolor_pre_sesion) %></td>
+                <td class="text-end"><%= valor_o_guion(sesion.escala_dolor_post_sesion) %></td>
+                <td><%= valor_o_guion(sesion.treatments.map(&:nombre).sort.join(", ")) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% unless @grafica.vacia? %>
+    <section class="mb-4 evitar-corte" id="informe-evolucion">
+      <h2 class="h5">Evolución del dolor</h2>
+      <%= render "patients/grafica_dolor", grafica: @grafica %>
+    </section>
+  <% end %>
+
+  <% if tecnicas.any? %>
+    <section class="mb-4 evitar-corte" id="informe-tecnicas">
+      <h2 class="h5">Qué es cada técnica</h2>
+      <dl class="row mb-0">
+        <% tecnicas.each do |tecnica| %>
+          <dt class="col-sm-4"><%= tecnica.nombre %></dt>
+          <dd class="col-sm-8"><%= valor_o_guion(tecnica.descripcion) %></dd>
+        <% end %>
+      </dl>
+    </section>
+  <% end %>
+
+  <% if (exploracion = @visit.examination) %>
+    <section class="mb-4 evitar-corte" id="informe-exploracion">
+      <h2 class="h5">Exploración</h2>
+      <dl class="row mb-0">
+        <% Examination::CAMPOS.select { |campo| exploracion[campo].present? }.each do |campo| %>
+          <dt class="col-sm-4 fw-normal text-body-secondary"><%= Examination.human_attribute_name(campo) %></dt>
+          <dd class="col-sm-8"><%= exploracion[campo] %></dd>
+        <% end %>
+      </dl>
+    </section>
+  <% end %>
+
+  <% if @visit.supplementary_tests.any? %>
+    <section class="mb-4 evitar-corte" id="informe-pruebas">
+      <h2 class="h5">Pruebas complementarias</h2>
+      <ul class="mb-0">
+        <% @visit.supplementary_tests.order(:id).each do |prueba| %>
+          <li>
+            <strong><%= etiqueta_enum(:test_type, prueba.tipo_prueba) %>:</strong> <%= prueba.resumen %>
+            <span class="small text-body-secondary">(<%= prueba.escaneado %>)</span>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+
+  <footer class="border-top pt-3 mt-4 small text-body-secondary">
+    Informe generado el <%= l(Date.current) %> con RedSocialFisios. Contiene datos de salud del paciente:
+    es confidencial.
+  </footer>
+</article>

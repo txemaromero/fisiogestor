@@ -1,0 +1,44 @@
+<%# Una de las listas del catálogo (técnicas o enfermedades), con sus usos, los posibles duplicados y las
+    acciones. Las rutas llegan como lambdas que reciben la entrada. %>
+<section id="<%= id %>" class="mb-5">
+  <h2 class="h5"><%= titulo %> <span class="badge text-bg-secondary align-middle"><%= entradas.size %></span></h2>
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle tabla-catalogo">
+      <thead>
+        <tr>
+          <th class="columna-nombre">Nombre</th>
+          <th>Descripción</th>
+          <th class="text-end columna-usos"><%= columna_usos %></th>
+          <th class="text-center columna-acciones-catalogo">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% entradas.each do |entrada| %>
+          <tr id="<%= id %>-<%= entrada.id %>">
+            <td>
+              <%= entrada.nombre %>
+              <% if (parecidas = duplicados[entrada.id]) %>
+                <div class="small text-warning-emphasis">⚠ Posible duplicado de <%= parecidas.map { |nombre| "«#{nombre}»" }.to_sentence %></div>
+              <% end %>
+            </td>
+            <td class="small"><%= valor_o_guion(entrada.descripcion) %></td>
+            <td class="text-end"><%= entrada.usos %></td>
+            <td class="text-center">
+              <div class="d-flex flex-wrap justify-content-center gap-1">
+                <%= link_to "Editar", editar.(entrada), class: "btn btn-sm btn-outline-success",
+                                                        aria: { label: "Editar «#{entrada.nombre}»" } %>
+                <%= link_to "Fusionar", fusion.(entrada), class: "btn btn-sm btn-outline-light",
+                                                          aria: { label: "Fusionar «#{entrada.nombre}» con otra" } %>
+                <% if entrada.usos.zero? %>
+                  <%= button_to "Borrar", borrar.(entrada), method: :delete, class: "btn btn-sm btn-outline-danger",
+                                aria: { label: "Borrar «#{entrada.nombre}»" },
+                                form: { data: { turbo_confirm: "¿Seguro que quieres borrar «#{entrada.nombre}» del catálogo?" } } %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

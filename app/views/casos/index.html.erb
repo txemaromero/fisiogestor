@@ -1,0 +1,59 @@
+<% content_for :title, "Casos clínicos" %>
+
+<h1 class="h3 mb-2">Casos clínicos</h1>
+<p class="text-body-secondary">
+  Casos anonimizados que publican los osteópatas verificados para que los demás opinen y sugieran técnicas. Para
+  publicar uno, abre la visita de un paciente que consiente compartir sus datos y pulsa «Publicar como caso
+  clínico» en su diagnóstico.
+</p>
+
+<%= form_with url: casos_path, method: :get, id: "filtro-casos", class: "row g-2 align-items-end mb-3" do |f| %>
+  <div class="col-sm-6 col-md-4">
+    <%= f.label :enfermedad, "Enfermedad", class: "form-label" %>
+    <%= f.select :enfermedad, @diseases.map { |disease| [ disease.nombre, disease.id ] },
+                 { include_blank: "Todas", selected: @enfermedad&.id }, class: "form-select" %>
+  </div>
+  <div class="col-auto">
+    <%= f.submit "Filtrar", name: nil, class: "btn btn-success" %>
+  </div>
+<% end %>
+
+<p class="text-body-secondary" id="total-casos">
+  <%= pluralize(@paginacion.total, "caso", plural: "casos") %><%= " de #{@enfermedad.nombre}" if @enfermedad %>
+</p>
+
+<% if @casos.any? %>
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle" id="casos">
+      <thead>
+        <tr>
+          <th>Caso</th>
+          <th>Enfermedad</th>
+          <th>Paciente</th>
+          <th>Publicado por</th>
+          <th class="text-center">Comentarios</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @casos.each do |caso| %>
+          <tr id="<%= dom_id(caso) %>">
+            <td>
+              <%= link_to caso.titulo, caso, class: "link-light fw-semibold" %>
+              <% if caso.oculto? %><span class="badge text-bg-warning ms-1">Oculto</span><% end %>
+              <% unless caso.en_la_red? %><span class="badge text-bg-secondary ms-1">Retirado: solo lo ves tú</span><% end %>
+              <div class="small text-body-secondary"><%= mes_publicacion(caso) %></div>
+            </td>
+            <td><%= caso.enfermedad.nombre %></td>
+            <td><%= perfil_paciente_caso(caso) %></td>
+            <td><%= enlace_osteopata(caso.osteopath) %></td>
+            <td class="text-center"><%= @comentarios.fetch(caso.id, 0) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/paginacion", paginacion: @paginacion,
+                                  ruta: ->(pagina) { casos_path(enfermedad: @enfermedad&.id, pagina: pagina) } %>
+<% else %>
+  <div class="alert alert-secondary">Todavía no hay casos publicados<%= " de #{@enfermedad.nombre}" if @enfermedad %>.</div>
+<% end %>

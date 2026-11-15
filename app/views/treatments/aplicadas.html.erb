@@ -1,0 +1,29 @@
+<% content_for :title, "Técnicas aplicadas" %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">Técnicas aplicadas</h1>
+  <%= link_to "Volver", @volver, class: "btn btn-outline-light" %>
+</div>
+
+<% if @treatments.any? %>
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle" id="tecnicas-aplicadas">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @treatments.each do |tecnica| %>
+          <tr>
+            <td><%= tecnica.nombre %></td>
+            <td><%= valor_o_guion(tecnica.descripcion) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="alert alert-secondary">No hay técnicas que mostrar.</div>
+<% end %>

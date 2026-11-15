@@ -1,0 +1,55 @@
+# Reducción de dolor (pre - post) por sesión y técnicas aplicadas:
+#   juan_1          8 -> 5 (3)   masaje, estiramiento
+#   juan_2          5 -> 1 (4)   masaje, manipulacion
+#   maria_torres_1  6 -> 5 (1)   estiramiento
+#   pepe_1          9 -> 4 (5)   manipulacion
+#   pepe_2          4 -> ?       hipopresivos   (sin escala post: no cuenta para la efectividad)
+#   maria_perez_1   7 -> 6 (1)   masaje, hipopresivos
+#   antonio_1       6 -> 6 (0)   estiramiento
+juan_1:
+  diagnosis: diag_juan
+  fecha: 2026-03-12
+  escala_dolor_pre_sesion: 8
+  escala_dolor_post_sesion: 5
+  treatments: masaje, estiramiento
+
+juan_2:
+  diagnosis: diag_juan
+  fecha: 2026-03-19
+  escala_dolor_pre_sesion: 5
+  escala_dolor_post_sesion: 1
+  treatments: masaje, manipulacion
+
+maria_torres_1:
+  diagnosis: diag_maria_torres
+  fecha: 2026-04-05
+  escala_dolor_pre_sesion: 6
+  escala_dolor_post_sesion: 5
+  treatments: estiramiento
+
+pepe_1:
+  diagnosis: diag_pepe
+  fecha: 2026-05-18
+  escala_dolor_pre_sesion: 9
+  escala_dolor_post_sesion: 4
+  treatments: manipulacion
+
+pepe_2:
+  diagnosis: diag_pepe
+  fecha: 2026-05-25
+  escala_dolor_pre_sesion: 4
+  treatments: hipopresivos
+
+maria_perez_1:
+  diagnosis: diag_maria_perez
+  fecha: 2026-02-24
+  escala_dolor_pre_sesion: 7
+  escala_dolor_post_sesion: 6
+  treatments: masaje, hipopresivos
+
+antonio_1:
+  diagnosis: diag_antonio
+  fecha: 2026-06-04
+  escala_dolor_pre_sesion: 6
+  escala_dolor_post_sesion: 6
+  treatments: estiramiento

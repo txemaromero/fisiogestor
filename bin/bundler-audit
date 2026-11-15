@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# bundler-audit, las vulnerabilidades conocidas de las gemas de Gemfile.lock, con la versión del Gemfile
+# (D102). Sin argumentos, actualiza la base de avisos (un repositorio de Git en tmp/ruby-advisory-db, dentro
+# del proyecto; la descarga la primera vez) y comprueba. Necesita red para actualizarla.
+require_relative "../config/boot"
+require "bundler/audit/cli"
+
+ARGV.concat %w[check --update --database tmp/ruby-advisory-db --config config/bundler-audit.yml] if ARGV.empty?
+Bundler::Audit::CLI.start

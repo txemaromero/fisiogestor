@@ -1,0 +1,63 @@
+<% content_for :title, "Mostrar pacientes" %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">Mostrar pacientes</h1>
+  <%= link_to "Crear paciente", new_patient_path, class: "btn btn-success" %>
+</div>
+
+<%= form_with url: patients_path, method: :get, id: "buscador-pacientes", class: "mb-3" do |f| %>
+  <div class="input-group">
+    <%= f.search_field :busqueda, value: @busqueda, class: "form-control", maxlength: 100,
+                                  placeholder: "Nombre o apellidos", aria: { label: "Buscar por nombre o apellidos" } %>
+    <%= f.submit "Buscar", name: nil, class: "btn btn-success" %>
+    <% if @busqueda.present? %>
+      <%= link_to "Limpiar", patients_path, class: "btn btn-outline-light" %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @patients.any? %>
+  <p class="small text-body-secondary" id="total-pacientes">
+    <%= pluralize(@paginacion.total, "paciente", plural: "pacientes") %>
+    <% if @busqueda.present? %>
+      <%= @paginacion.total == 1 ? "coincide" : "coinciden" %> con «<%= @busqueda %>»
+    <% end %>
+  </p>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-striped table-hover align-middle" id="pacientes">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellidos</th>
+          <th class="text-center">Mostrar</th>
+          <th class="text-center">Borrar</th>
+          <th class="text-center">Editar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @patients.each do |patient| %>
+          <tr id="<%= dom_id(patient) %>">
+            <td><%= patient.nombre %></td>
+            <td><%= patient.apellidos %></td>
+            <td class="text-center"><%= link_to "Mostrar", patient, class: "btn btn-sm btn-success" %></td>
+            <td class="text-center">
+              <%= button_to "Borrar", patient, method: :delete, class: "btn btn-sm btn-outline-danger",
+                    form: { data: { turbo_confirm: confirmacion_borrar_paciente(patient) } } %>
+            </td>
+            <td class="text-center"><%= link_to "Editar", edit_patient_path(patient), class: "btn btn-sm btn-outline-success" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render "shared/paginacion", paginacion: @paginacion,
+                                  ruta: ->(pagina) { patients_path(busqueda: @busqueda.presence, pagina: pagina) } %>
+<% elsif @busqueda.present? %>
+  <div class="alert alert-secondary">Ningún paciente coincide con «<%= @busqueda %>».</div>
+<% else %>
+  <div class="alert alert-secondary">
+    Todavía no tienes pacientes. <%= link_to "Crea el primero", new_patient_path, class: "alert-link" %>.
+  </div>
+<% end %>

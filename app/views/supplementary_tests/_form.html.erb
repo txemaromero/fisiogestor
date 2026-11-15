@@ -1,0 +1,42 @@
+<%= form_with model: [ @visit, supplementary_test ] do |f| %>
+  <%= render "shared/errores", objeto: supplementary_test %>
+
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <%= f.label :tipo_prueba, class: "form-label" %>
+          <%= f.select :tipo_prueba, opciones_enum(:test_type, SupplementaryTest.tipo_pruebas.keys),
+                       { include_blank: "Selecciona…" }, class: clase_campo(supplementary_test, :tipo_prueba, "form-select") %>
+        </div>
+        <div class="col-md-8">
+          <%= f.label :archivo, class: "form-label" %>
+          <%= f.file_field :archivo, accept: SupplementaryTest::FIRMAS_ARCHIVO.keys.join(","),
+                                     class: clase_campo(supplementary_test, :archivo), aria: { describedby: "ayuda-archivo" } %>
+          <div id="ayuda-archivo" class="form-text">
+            PDF, JPG o PNG de hasta <%= SupplementaryTest::MAX_ARCHIVO / 1.megabyte %> MB.
+            <% if supplementary_test.archivo_guardado? %>
+              Fichero actual: <span class="font-monospace"><%= supplementary_test.escaneado_in_database %></span>.
+              Elige otro solo si quieres sustituirlo.
+            <% elsif supplementary_test.escaneado_in_database.present? %>
+              Esta prueba se registró solo con el nombre del fichero
+              (<span class="font-monospace"><%= supplementary_test.escaneado_in_database %></span>): puedes subirlo ahora.
+            <% end %>
+            <% if supplementary_test.errors.any? %>
+              Si habías elegido un fichero, vuelve a elegirlo: el navegador no lo conserva.
+            <% end %>
+          </div>
+        </div>
+        <div class="col-12">
+          <%= f.label :resumen, class: "form-label" %>
+          <%= f.text_area :resumen, rows: 4, class: clase_campo(supplementary_test, :resumen) %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", visit_supplementary_tests_path(@visit), class: "btn btn-outline-light" %>
+  </div>
+<% end %>

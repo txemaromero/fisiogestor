@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# Brakeman, el análisis estático de seguridad del código, con la versión del Gemfile (D102). A diferencia
+# del de Rails, sin --ensure-latest: comprobaría por red que es la última versión y fallaría con cada
+# versión nueva, aunque la del Gemfile esté fijada a propósito.
+require "rubygems"
+require "bundler/setup"
+
+load Gem.bin_path("brakeman", "brakeman")

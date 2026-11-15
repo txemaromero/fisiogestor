@@ -1,0 +1,65 @@
+# Integración continua (D102): en cada push y pull request a main, las comprobaciones de seguridad y los
+# tests de bin/ci (sin los system tests, que necesitan Chrome y tardan más). Las acciones van fijadas por el
+# commit exacto (con su versión en el comentario), no por una etiqueta que se pueda mover.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Solo leer el repositorio: el workflow no publica nada ni necesita secretos.
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama cancela la ejecución anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seguridad:
+    name: Seguridad
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Vulnerabilidades conocidas de las gemas (bundler-audit, con los avisos al día)
+        run: bin/bundler-audit
+
+      - name: Vulnerabilidades de los paquetes JavaScript (importmap)
+        run: bin/importmap audit
+
+      - name: Análisis estático del código (Brakeman)
+        run: bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RAILS_ENV: test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Tests de modelos, controladores, correos, integración y tareas
+        run: bin/rails test
+
+      - name: Seeds (en la base de datos de test)
+        run: bin/rails db:seed:replant

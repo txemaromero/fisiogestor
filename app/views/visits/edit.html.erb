@@ -1,0 +1,40 @@
+<% content_for :title, "Editar visita" %>
+
+<h1 class="h3 mb-4">Editar visita</h1>
+
+<%= form_with model: @visit, id: "formulario-editar-visita" do |f| %>
+  <%= render "shared/errores", objeto: @visit %>
+
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="paciente-visita" class="form-label">Paciente</label>
+          <input type="text" id="paciente-visita" class="form-control" readonly
+                 value="<%= @visit.patient.nombre_completo %>">
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :fecha, class: "form-label" %>
+          <%= f.date_field :fecha, class: clase_campo(@visit, :fecha) %>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :escala_dolor, "Escala dolor", class: "form-label" %>
+          <%= f.select :escala_dolor, opciones_escala_dolor, {}, class: clase_campo(@visit, :escala_dolor, "form-select") %>
+        </div>
+        <div class="col-12">
+          <%= f.label :motivo, class: "form-label" %>
+          <%= f.text_field :motivo, class: clase_campo(@visit, :motivo) %>
+        </div>
+        <div class="col-12">
+          <%= f.label :anamnesis, class: "form-label" %>
+          <%= f.text_area :anamnesis, rows: 5, class: clase_campo(@visit, :anamnesis) %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", visit_path(@visit), class: "btn btn-outline-light" %>
+  </div>
+<% end %>

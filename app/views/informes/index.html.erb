@@ -1,0 +1,155 @@
+<% content_for :title, "Generar informe" %>
+
+<h1 class="h3 mb-4">Generar informe</h1>
+
+<%= form_with url: informes_path, method: :get, id: "formulario-informe", data: { controller: "informe" } do |f| %>
+  <div class="card text-bg-dark mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= f.label :tipo, "Tipo de informe", class: "form-label" %>
+          <%= f.select :tipo, InformesController::TIPOS.invert, { include_blank: "Selecciona un informe…", selected: @tipo },
+                       required: true, class: "form-select",
+                       data: { informe_target: "tipo", action: "informe#cambiarTipo" } %>
+        </div>
+        <div class="col-md-6">
+          <%= f.label :ambito, "Pacientes", class: "form-label" %>
+          <% if current_osteopath.acceso_a_la_red? %>
+            <%= f.select :ambito, InformesController::AMBITOS.invert, { selected: @ambito }, class: "form-select" %>
+          <% else %>
+            <%# Sin verificar, los informes solo son de los pacientes propios (D94). %>
+            <%= f.select :ambito, { InformesController::AMBITOS["mios"] => "mios" }, { selected: "mios" },
+                         class: "form-select", aria: { describedby: "ayuda-ambito" } %>
+            <div class="form-text" id="ayuda-ambito">
+              Los informes de toda la plataforma son para osteópatas verificados:
+              <%= link_to "verifica tu número de colegiado", cuenta_path, class: "link-light" %>.
+            </div>
+          <% end %>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :desde, "Sesiones desde (opcional)", class: "form-label" %>
+          <%= f.date_field :desde, value: @desde, class: "form-control" %>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :hasta, "Sesiones hasta (opcional)", class: "form-label" %>
+          <%= f.date_field :hasta, value: @hasta, class: "form-control" %>
+        </div>
+      </div>
+
+      <%# Controles del informe «Técnicas posibles para un cuadro clínico» %>
+      <div class="row g-3 mt-1" id="controles-cuadro-clinico" data-informe-target="cuadroClinico"
+           <%= "hidden" unless @tipo == "cuadro_clinico" %>>
+        <div class="col-md-4">
+          <%= f.label :disease_id, "Enfermedad", class: "form-label" %>
+          <%= f.select :disease_id, @diseases.map { |disease| [ disease.nombre, disease.id ] },
+                       { include_blank: "Selecciona una enfermedad…", selected: @disease&.id },
+                       required: true, disabled: @tipo != "cuadro_clinico", class: "form-select" %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :sexo, "Género (opcional)", class: "form-label" %>
+          <%= f.select :sexo, [ [ "Ambos", "ambos" ] ] + opciones_enum(:sex_type, Patient.sexos.keys),
+                       { selected: @sexo }, disabled: @tipo != "cuadro_clinico", class: "form-select" %>
+        </div>
+        <div class="col-md-5">
+          <fieldset>
+            <legend class="form-label fs-6">Edad (opcional)</legend>
+            <div class="input-group">
+              <%= f.number_field :edad_min, value: @edad_min, min: 0, max: 130, class: "form-control", disabled: @tipo != "cuadro_clinico",
+                                            placeholder: "Mínima", aria: { label: "Edad mínima" } %>
+              <span class="input-group-text">a</span>
+              <%= f.number_field :edad_max, value: @edad_max, min: 0, max: 130, class: "form-control", disabled: @tipo != "cuadro_clinico",
+                                            placeholder: "Máxima", aria: { label: "Edad máxima" } %>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <%= f.submit "Generar", name: nil, class: "btn btn-success" %>
+    </div>
+  </div>
+<% end %>
+
+<% if @tecnicas %>
+  <% efectividad = @tipo != "mas_frecuentes" %>
+  <section id="resultado-informe">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+      <div>
+        <h2 class="h5 mb-1"><%= InformesController::TIPOS[@tipo] %></h2>
+        <p class="small mb-1" id="filtros-informe"><%= filtros_informe(@ambito, @desde, @hasta) %></p>
+      </div>
+      <% if @tecnicas.any? %>
+        <%= link_to "Descargar CSV", informes_path(parametros_informe.merge(format: :csv)),
+                    class: "btn btn-sm btn-outline-light", data: { turbo: false } %>
+      <% end %>
+    </div>
+    <p class="text-body-secondary small">
+      <% case @tipo %>
+      <% when "mas_frecuentes" %>
+        Técnicas ordenadas por el número de sesiones en las que se han aplicado.
+      <% when "mas_efectivas", "menos_efectivas" %>
+        Reducción media del dolor (escala presesión − escala postsesión) en las sesiones donde se aplicó la técnica.
+        Solo se tienen en cuenta las sesiones con las dos escalas registradas.
+      <% when "cuadro_clinico" %>
+        <%= @disease.nombre %>
+        <% if @sexo != "ambos" %>· <%= etiqueta_enum(:sex_type, @sexo) %><% end %>
+        <% if @edad_min.present? || @edad_max.present? %>
+          · de <%= @edad_min.presence || "cualquier edad" %> a <%= @edad_max.presence || "cualquier edad" %> años
+        <% end %>
+        — técnicas aplicadas en diagnósticos de esta enfermedad, de la más a la menos efectiva. La reducción
+        media solo tiene en cuenta las sesiones con las dos escalas registradas.
+      <% end %>
+    </p>
+
+    <% if @tecnicas.any? %>
+      <% grafica = grafica_informe(@tipo, @tecnicas) %>
+      <%= render "informes/grafica_barras", grafica: grafica, efectividad: efectividad unless grafica.vacia? %>
+
+      <% if efectividad && @tecnicas.any?(&:pocas_sesiones?) %>
+        <p class="small text-body-secondary" id="aviso-pocas-sesiones">
+          ⚠ Las medias de menos de <%= Treatment::MIN_SESIONES_FIABLE %> sesiones son poco fiables: no conviene
+          sacar conclusiones de tan pocos casos.
+        </p>
+      <% end %>
+
+      <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle" id="tabla-informe">
+          <thead>
+            <tr>
+              <th class="text-end columna-posicion">#</th>
+              <th>Técnica</th>
+              <% if @tipo == "mas_frecuentes" %>
+                <th class="text-end">Sesiones en las que se aplicó</th>
+              <% else %>
+                <th class="text-end">Reducción media del dolor</th>
+                <th class="text-end">Nº de sesiones</th>
+                <th>Fiabilidad</th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% @tecnicas.each.with_index(1) do |tecnica, posicion| %>
+              <tr>
+                <td class="text-end"><%= posicion %></td>
+                <td><%= tecnica.nombre %></td>
+                <% if @tipo == "mas_frecuentes" %>
+                  <td class="text-end"><%= tecnica.num_sesiones %></td>
+                <% else %>
+                  <td class="text-end"><%= reduccion_dolor(tecnica.reduccion_media) %></td>
+                  <td class="text-end"><%= tecnica.num_sesiones %></td>
+                  <td>
+                    <% if tecnica.pocas_sesiones? %>
+                      <span class="badge text-bg-warning">⚠ Pocas sesiones</span>
+                    <% end %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="alert alert-secondary">No hay datos para este informe.</div>
+    <% end %>
+  </section>
+<% end %>

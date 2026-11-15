@@ -1,0 +1,25 @@
+<% content_for :title, "Exploración" %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">Exploración de la visita del <%= fecha_o_guion(@visit.fecha) %></h1>
+  <%= link_to "Volver a la visita", @visit, class: "btn btn-outline-light" %>
+</div>
+
+<div class="card text-bg-dark" id="exploracion">
+  <div class="card-body">
+    <% Examination::GRUPOS.each do |grupo, campos| %>
+      <h2 class="h6 text-success-emphasis mt-2"><%= grupo %></h2>
+      <dl class="row">
+        <% campos.each do |campo| %>
+          <dt class="col-sm-5 fw-normal text-body-secondary"><%= Examination.human_attribute_name(campo) %></dt>
+          <dd class="col-sm-7"><%= valor_o_guion(@examination[campo]) %></dd>
+        <% end %>
+      </dl>
+    <% end %>
+  </div>
+  <div class="card-footer d-flex gap-2">
+    <%= link_to "Editar", edit_visit_examination_path(@visit), class: "btn btn-success" %>
+    <%= button_to "Borrar", visit_examination_path(@visit), method: :delete, class: "btn btn-outline-danger",
+                  form: { data: { turbo_confirm: "¿Seguro que quieres borrar la exploración?" } } %>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+lumbago:
+  nombre: Lumbago
+  descripcion: Dolor en la zona lumbar de la espalda.
+
+ciatica:
+  nombre: Ciática
+  descripcion: Dolor que recorre el trayecto del nervio ciático.
+
+hernia_discal:
+  nombre: Hernia discal
+  descripcion: Desplazamiento del núcleo del disco intervertebral.
+
+# Sin diagnósticos: sirve para comprobar filtros sin resultados.
+miopia:
+  nombre: Miopía
+  descripcion: Dificultad para ver con nitidez los objetos lejanos.

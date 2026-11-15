@@ -1,0 +1,94 @@
+<% content_for :title, "Filtrar tratamientos" %>
+
+<h1 class="h3 mb-4">Filtrar tratamientos</h1>
+
+<%# El formulario carga los resultados en el turbo-frame de abajo sin recargar la página
+    (y actualiza la URL, así que «Atrás» y recargar mantienen el filtro). %>
+<%= form_with url: filtrar_tratamientos_path, method: :get, id: "filtro-tratamientos",
+              data: { turbo_frame: "resultados", turbo_action: "advance" } do |f| %>
+  <div class="card text-bg-dark mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <%= f.label :sexo, "Género", class: "form-label" %>
+          <%= f.select :sexo, [ [ "Ambos", "ambos" ] ] + opciones_enum(:sex_type, Patient.sexos.keys),
+                       { selected: @sexo }, class: "form-select" %>
+        </div>
+        <div class="col-md-4">
+          <fieldset>
+            <legend class="form-label fs-6">Edad</legend>
+            <div class="input-group">
+              <%= f.number_field :edad_min, value: @edad_min, min: 0, max: 130, class: "form-control",
+                                            placeholder: "Mínima", aria: { label: "Edad mínima" } %>
+              <span class="input-group-text">a</span>
+              <%= f.number_field :edad_max, value: @edad_max, min: 0, max: 130, class: "form-control",
+                                            placeholder: "Máxima", aria: { label: "Edad máxima" } %>
+            </div>
+            <div class="form-text">Vacío: sin límite. Los límites se incluyen.</div>
+          </fieldset>
+        </div>
+        <div class="col-md-5">
+          <%= f.label :dolencias, "Dolencias", class: "form-label" %>
+          <%= f.select :dolencias, @diseases.map { |disease| [ disease.nombre, disease.id ] },
+                       { selected: @dolencias, include_hidden: false },
+                       multiple: true, size: [ @diseases.size, 7 ].min, class: "form-select",
+                       aria: { describedby: "ayuda-dolencias" } %>
+          <div id="ayuda-dolencias" class="form-text">
+            Ctrl/Cmd + clic para elegir varias. Sin ninguna elegida se incluyen todas.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <%= f.submit "Mostrar tratamientos", name: nil, class: "btn btn-success" %>
+    </div>
+  </div>
+<% end %>
+
+<%# Los enlaces de los resultados navegan fuera del frame (target _top). %>
+<%= turbo_frame_tag "resultados", target: "_top" do %>
+  <% if @diagnoses %>
+    <p class="text-body-secondary" id="total-resultados">
+      <%= pluralize(@diagnoses.size, "diagnóstico encontrado", plural: "diagnósticos encontrados") %>
+    </p>
+    <% if @diagnoses.any? %>
+      <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle" id="resultados-tratamientos">
+          <thead>
+            <tr>
+              <th>Enfermedad</th>
+              <th>Técnicas aplicadas</th>
+              <th>Paciente</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @diagnoses.each do |diagnostico| %>
+              <% tecnicas = diagnostico.tecnicas_aplicadas %>
+              <tr id="<%= dom_id(diagnostico) %>">
+                <td><%= diagnostico.disease.nombre %></td>
+                <td>
+                  <% if tecnicas.any? %>
+                    <%= link_to "Mostrar técnicas", tecnicas_aplicadas_path(ids: tecnicas.map(&:id)),
+                                class: "btn btn-sm btn-success" %>
+                    <span class="small text-body-secondary ms-1"><%= pluralize(tecnicas.size, "técnica", plural: "técnicas") %></span>
+                  <% else %>
+                    <span class="text-body-secondary">Sin técnicas</span>
+                  <% end %>
+                </td>
+                <td>
+                  <% paciente = diagnostico.visit.patient %>
+                  <%= link_to "Mostrar paciente", ruta_ficha(paciente), class: "btn btn-sm btn-outline-success" %>
+                  <span class="small text-body-secondary ms-1">
+                    <%= etiqueta_enum(:sex_type, paciente.sexo) %>, <%= paciente.edad %> años
+                  </span>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="alert alert-secondary">Ningún diagnóstico cumple el filtro.</div>
+    <% end %>
+  <% end %>
+<% end %>

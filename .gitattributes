@@ -1,0 +1,21 @@
+# See https://git-scm.com/docs/gitattributes for more about git attribute files.
+
+# Mark the database schema as having been generated.
+db/schema.rb linguist-generated
+
+# Mark any vendored files as having been vendored.
+vendor/* linguist-vendored
+config/credentials/*.yml.enc diff=rails_credentials
+config/credentials.yml.enc diff=rails_credentials
+
+# CSS compilado por dartsass (ver DECISIONES.md, D10): se trata como binario para que Git no convierta
+# sus finales de línea (core.autocrlf en Windows) y no aparezca como modificado tras recompilarlo.
+app/assets/builds/application.css binary linguist-generated
+
+# PDF e imágenes (ficheros de ejemplo de las seeds, de los tests y la demo): binarios, para que Git no
+# cambie sus finales de línea. Un PDF sin bytes NUL parece texto y core.autocrlf lo corrompería.
+*.pdf binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary

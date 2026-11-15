@@ -1,0 +1,44 @@
+# Más información sobre cómo ignorar ficheros: https://help.github.com/articles/ignoring-files
+#
+# Los ficheros temporales del editor de texto o del sistema operativo van en el fichero
+# global de git para ignorar ficheros:
+# `$XDG_CONFIG_HOME/git/ignore` o `~/.config/git/ignore`
+
+# Ignorar la configuración de Bundler.
+/.bundle
+
+# Ignorar todos los ficheros de variables de entorno.
+/.env*
+
+# Ignorar todos los logs y ficheros temporales.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignorar los ficheros pid, pero mantener la carpeta.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignorar storage (ficheros subidos en desarrollo y bases de datos SQLite).
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+
+/public/assets
+
+# Ignorar los ficheros de claves para descifrar las credenciales y otros datos.
+/config/*.key
+
+# El CSS compilado (app/assets/builds/application.css) SÍ se versiona: ver DECISIONES.md (D10).
+
+# Vídeo de demostración con voz: no se versiona por su tamaño (la demo del repositorio es demo.webp).
+/demo.mp4
+
+# Herramientas locales y auditoría.
+/CLAUDE.md
+/.claude/
+/scripts/security/

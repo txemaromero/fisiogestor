@@ -1,0 +1,17 @@
+juan_padre:
+  patient: juan
+  familiar: Padre
+  tipo: digestivos
+  descripcion: Problemas de intestino permeable
+
+juan_madre:
+  patient: juan
+  familiar: Madre
+  tipo: cardio_respiratorios
+  descripcion: Arritmia
+
+maria_perez_abuela:
+  patient: maria_perez
+  familiar: Abuela
+  tipo: endocrinos
+  descripcion: Diabetes tipo 2

@@ -1,0 +1,26 @@
+<% content_for :title, "Editar #{tipo_elemento}" %>
+
+<h1 class="h3 mb-1">Editar <%= tipo_elemento %></h1>
+<p class="text-body-secondary mb-4">El cambio se verá en todas las visitas e informes de la plataforma.</p>
+
+<%= form_with model: @elemento, url: ruta_elemento, method: :patch, id: "formulario-catalogo" do |f| %>
+  <%= render "shared/errores", objeto: @elemento %>
+
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <div class="mb-3">
+        <%= f.label :nombre, "Nombre", class: "form-label" %>
+        <%= f.text_field :nombre, maxlength: 100, class: clase_campo(@elemento, :nombre) %>
+      </div>
+      <div>
+        <%= f.label :descripcion, "Descripción", class: "form-label" %>
+        <%= f.text_area :descripcion, rows: 3, class: clase_campo(@elemento, :descripcion) %>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", catalogo_path, class: "btn btn-outline-light" %>
+  </div>
+<% end %>

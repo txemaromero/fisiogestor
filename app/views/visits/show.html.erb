@@ -1,0 +1,115 @@
+<% content_for :title, "Visita" %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">Visita del <%= fecha_o_guion(@visit.fecha) %></h1>
+  <div class="d-flex flex-wrap gap-2">
+    <%# En otra pestaña y sin Turbo: el informe tiene su propio diseño claro (layout «informe»). %>
+    <%= link_to "Informe para el paciente", informe_visit_path(@visit), class: "btn btn-outline-light",
+                target: "_blank", rel: "noopener", data: { turbo: false } %>
+    <%= link_to "Editar visita", edit_visit_path(@visit), class: "btn btn-outline-success" %>
+    <%= button_to "Borrar visita", @visit, method: :delete, class: "btn btn-outline-danger",
+                  form: { data: { turbo_confirm: "¿Seguro que quieres borrar esta visita? Se borrarán también sus " \
+                                                 "diagnósticos, sesiones, exploración, pruebas complementarias y " \
+                                                 "casos clínicos publicados." } } %>
+    <%= link_to "Volver al paciente", @visit.patient, class: "btn btn-outline-light" %>
+  </div>
+</div>
+
+<div class="card text-bg-dark mb-4" id="resumen-visita">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Paciente</dt>
+      <dd class="col-sm-9"><%= link_to @visit.patient.nombre_completo, @visit.patient, class: "link-light" %></dd>
+      <dt class="col-sm-3">Osteópata</dt>
+      <dd class="col-sm-9"><%= @visit.osteopath.nombre_completo %></dd>
+      <dt class="col-sm-3">Fecha</dt>
+      <dd class="col-sm-9"><%= fecha_o_guion(@visit.fecha) %></dd>
+      <dt class="col-sm-3">Motivo</dt>
+      <dd class="col-sm-9"><%= valor_o_guion(@visit.motivo) %></dd>
+      <dt class="col-sm-3">Escala de dolor</dt>
+      <dd class="col-sm-9"><%= valor_o_guion(@visit.escala_dolor) %></dd>
+      <dt class="col-sm-3">Anamnesis</dt>
+      <dd class="col-sm-9 mb-0"><%= @visit.anamnesis.present? ? simple_format(@visit.anamnesis, class: "mb-0") : "—" %></dd>
+    </dl>
+  </div>
+  <div class="card-footer d-flex flex-wrap gap-2">
+    <% if @visit.examination %>
+      <%= link_to "Ver exploración", visit_examination_path(@visit), class: "btn btn-sm btn-success" %>
+    <% else %>
+      <%= link_to "Añadir exploración", new_visit_examination_path(@visit), class: "btn btn-sm btn-outline-success" %>
+    <% end %>
+    <%= link_to "Pruebas complementarias (#{@visit.supplementary_tests.size})", visit_supplementary_tests_path(@visit),
+                class: "btn btn-sm btn-success" %>
+  </div>
+</div>
+
+<% diagnosticos = @visit.diagnoses.includes(:disease, :caso, sessions: :treatments).order(:id) %>
+<% diagnosticos.each do |diagnostico| %>
+  <section class="mb-4" id="<%= dom_id(diagnostico) %>">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <h2 class="h5 mb-0">Diagnóstico: <%= diagnostico.disease.nombre %></h2>
+      <div class="d-flex flex-wrap gap-2">
+        <%# Caso clínico (D89): solo si el paciente consiente compartir sus datos. %>
+        <% if diagnostico.caso %>
+          <%= link_to "Ver caso clínico", caso_path(diagnostico.caso), class: "btn btn-sm btn-outline-light" %>
+        <% elsif @visit.patient.consiente_compartir? %>
+          <%= link_to "Publicar como caso clínico", new_diagnosis_caso_path(diagnostico), class: "btn btn-sm btn-outline-light" %>
+        <% end %>
+        <%= link_to "Editar diagnóstico", edit_diagnosis_path(diagnostico), class: "btn btn-sm btn-outline-success" %>
+        <%= button_to "Borrar diagnóstico", diagnosis_path(diagnostico), method: :delete,
+                      class: "btn btn-sm btn-outline-danger",
+                      form: { data: { turbo_confirm: "¿Seguro que quieres borrar el diagnóstico de " \
+                                                     "#{diagnostico.disease.nombre}? Se borrarán también sus sesiones" \
+                                                     "#{' y el caso clínico publicado' if diagnostico.caso}." } } %>
+      </div>
+    </div>
+    <p class="mb-1"><strong>Sesiones recomendadas:</strong> <%= diagnostico.sesiones_recomendadas %></p>
+    <p class="text-body-secondary mb-2"><%= valor_o_guion(diagnostico.descripcion) %></p>
+    <p class="d-flex flex-wrap align-items-center gap-2 progreso"><%= progreso_sesiones(diagnostico) %></p>
+
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Sesión</th>
+            <th>Fecha</th>
+            <th>Pre</th>
+            <th>Post</th>
+            <th>Técnicas aplicadas</th>
+            <th class="text-center">Editar</th>
+            <th class="text-center">Borrar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% diagnostico.sessions.each.with_index(1) do |sesion, numero| %>
+            <tr id="<%= dom_id(sesion) %>">
+              <td><%= numero %></td>
+              <td><%= fecha_o_guion(sesion.fecha) %></td>
+              <td><%= valor_o_guion(sesion.escala_dolor_pre_sesion) %></td>
+              <td><%= valor_o_guion(sesion.escala_dolor_post_sesion) %></td>
+              <td><%= valor_o_guion(sesion.treatments.map(&:nombre).sort.join(", ")) %></td>
+              <td class="text-center">
+                <%= link_to "Editar", edit_sesion_path(sesion), class: "btn btn-sm btn-outline-success",
+                                                                aria: { label: "Editar la sesión #{numero}" } %>
+              </td>
+              <td class="text-center">
+                <%= button_to "Borrar", sesion_path(sesion), method: :delete, class: "btn btn-sm btn-outline-danger",
+                              aria: { label: "Borrar la sesión #{numero}" },
+                              form: { data: { turbo_confirm: "¿Seguro que quieres borrar la sesión #{numero}?" } } %>
+              </td>
+            </tr>
+          <% end %>
+          <% if diagnostico.sessions.empty? %>
+            <tr><td colspan="7" class="text-body-secondary">Sin sesiones registradas.</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= link_to "Añadir sesión", new_diagnosis_sesion_path(diagnostico), class: "btn btn-sm btn-success" %>
+  </section>
+<% end %>
+
+<% if diagnosticos.empty? %>
+  <p class="text-body-secondary">Esta visita no tiene diagnósticos.</p>
+<% end %>
+<%= link_to "Añadir diagnóstico", new_visit_diagnosis_path(@visit), class: "btn btn-outline-success" %>

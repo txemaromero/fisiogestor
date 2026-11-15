@@ -1,0 +1,9 @@
+<% content_for :title, "Añadir sesión" %>
+
+<h1 class="h3 mb-1">Añadir sesión</h1>
+<p class="text-body-secondary mb-4">
+  Diagnóstico: <%= @diagnosis.disease.nombre %> · Visita del <%= fecha_o_guion(@diagnosis.visit.fecha) %> ·
+  <%= @diagnosis.visit.patient.nombre_completo %> · <%= texto_progreso(@diagnosis) %>
+</p>
+
+<%= render "form", sesion: @sesion %>

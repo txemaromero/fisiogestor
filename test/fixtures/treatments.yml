@@ -1,0 +1,20 @@
+masaje:
+  nombre: Masaje espalda
+  descripcion: Masaje de la musculatura paravertebral.
+
+estiramiento:
+  nombre: Estiramiento columna
+  descripcion: Se estiran los erectores espinales.
+
+manipulacion:
+  nombre: Manipulación lumbar
+  descripcion: Manipulación de alta velocidad y baja amplitud en la zona lumbar.
+
+hipopresivos:
+  nombre: Hipopresivos
+  descripcion: Ejercicios respiratorios que reducen la presión abdominal.
+
+# Nunca aplicada: no debe aparecer en los informes.
+descompresion:
+  nombre: Descompresión columna
+  descripcion: Tracción suave de la columna vertebral.

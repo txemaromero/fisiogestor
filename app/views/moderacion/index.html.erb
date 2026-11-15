@@ -1,0 +1,148 @@
+<% content_for :title, "Moderación" %>
+<%# Denuncias de casos clínicos y comentarios (D91): ocultar el contenido o descartar las denuncias. %>
+
+<h1 class="h3 mb-2">Moderación</h1>
+<p class="text-body-secondary">
+  Un contenido oculto solo lo ven su autor y los administradores; un comentario oculto se sustituye por un aviso.
+  Se puede volver a mostrar.
+</p>
+
+<section class="mb-4" id="denuncias-pendientes">
+  <h2 class="h5">Denuncias pendientes (<%= @pendientes.size %>)</h2>
+  <% if @pendientes.empty? %>
+    <p class="text-body-secondary">No hay denuncias pendientes.</p>
+  <% end %>
+  <% @pendientes.each do |contenido, denuncias| %>
+    <% caso = caso_de(contenido) %>
+    <% tipo = contenido.is_a?(Caso) ? "caso" : "comentario" %>
+    <article class="card text-bg-dark mb-3" id="<%= dom_id(contenido, :denunciado) %>">
+      <div class="card-body">
+        <p class="small text-body-secondary mb-1">
+          <% if contenido.is_a?(Caso) %>
+            Caso clínico
+          <% elsif contenido_disponible?(contenido) %>
+            Comentario en «<%= caso.titulo %>»
+          <% else %>
+            Comentario
+          <% end %>
+          de <%= contenido.osteopath.nombre_completo %> · <%= fecha_y_hora(contenido.created_at) %>
+          <% if contenido.oculto? %><span class="badge text-bg-warning ms-1">Ya oculto</span><% end %>
+        </p>
+        <% if !contenido_disponible?(contenido) %>
+          <%# El paciente retiró el consentimiento (D96): no se enseña ni a los administradores. %>
+          <p class="mb-2 fst-italic text-body-secondary">
+            No disponible: el paciente retiró el consentimiento y el caso ya no está en la red.
+          </p>
+        <% else %>
+          <% if contenido.is_a?(Caso) %>
+            <p class="fw-semibold mb-1"><%= contenido.titulo %></p>
+            <p class="mb-2"><%= truncate(contenido.resumen, length: 400) %></p>
+          <% else %>
+            <p class="mb-2"><%= truncate(contenido.texto.presence || "(sin texto, solo técnicas sugeridas)", length: 400) %></p>
+          <% end %>
+          <%= link_to "Ver en el caso", caso_path(caso, anchor: (dom_id(contenido) unless contenido.is_a?(Caso))),
+                      class: "link-light small" %>
+        <% end %>
+
+        <ul class="list-unstyled small border-top border-secondary pt-2 mt-2 mb-3">
+          <% denuncias.each do |denuncia| %>
+            <li class="mb-1">
+              <strong><%= denuncia.osteopath.nombre_completo %></strong> (<%= fecha_y_hora(denuncia.created_at) %>):
+              <%= denuncia.motivo %>
+            </li>
+          <% end %>
+        </ul>
+
+        <div class="d-flex flex-wrap gap-2">
+          <%= button_to "Ocultar", ocultar_moderacion_path(tipo, contenido), class: "btn btn-sm btn-warning",
+                        form: { data: { turbo_confirm: "¿Ocultar este #{tipo}?" } } %>
+          <%= button_to "Descartar las denuncias", descartar_moderacion_path(tipo, contenido),
+                        class: "btn btn-sm btn-outline-light" %>
+        </div>
+      </div>
+    </article>
+  <% end %>
+</section>
+
+<section class="mb-4" id="contenido-oculto">
+  <h2 class="h5">Contenido oculto</h2>
+  <% if @casos_ocultos.empty? && @comentarios_ocultos.empty? %>
+    <p class="text-body-secondary">No hay nada oculto.</p>
+  <% else %>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Contenido</th>
+            <th>Autor</th>
+            <th>Oculto el</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @casos_ocultos.each do |caso| %>
+            <tr id="<%= dom_id(caso, :oculto) %>">
+              <td>
+                <% if contenido_disponible?(caso) %>
+                  Caso: <%= link_to caso.titulo, caso, class: "link-light" %>
+                <% else %>
+                  Caso no disponible (el paciente retiró el consentimiento)
+                <% end %>
+              </td>
+              <td><%= caso.osteopath.nombre_completo %></td>
+              <td><%= fecha_y_hora(caso.oculto_at) %></td>
+              <td class="text-end"><%= button_to "Volver a mostrar", mostrar_moderacion_path("caso", caso), class: "btn btn-sm btn-outline-success" %></td>
+            </tr>
+          <% end %>
+          <% @comentarios_ocultos.each do |comentario| %>
+            <tr id="<%= dom_id(comentario, :oculto) %>">
+              <td>
+                <% if contenido_disponible?(comentario) %>
+                  Comentario en <%= link_to "«#{comentario.caso.titulo}»", caso_path(comentario.caso, anchor: dom_id(comentario)), class: "link-light" %>:
+                  <span class="text-body-secondary"><%= truncate(comentario.texto.to_s, length: 120) %></span>
+                <% else %>
+                  Comentario de un caso no disponible (el paciente retiró el consentimiento)
+                <% end %>
+              </td>
+              <td><%= comentario.osteopath.nombre_completo %></td>
+              <td><%= fecha_y_hora(comentario.oculto_at) %></td>
+              <td class="text-end"><%= button_to "Volver a mostrar", mostrar_moderacion_path("comentario", comentario), class: "btn btn-sm btn-outline-success" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section id="denuncias-resueltas">
+  <h2 class="h5">Últimas denuncias resueltas</h2>
+  <% if @resueltas.empty? %>
+    <p class="text-body-secondary">Todavía no se ha resuelto ninguna.</p>
+  <% else %>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Resuelta el</th>
+            <th>Contenido</th>
+            <th>Denunciada por</th>
+            <th>Resultado</th>
+            <th>Resuelta por</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @resueltas.each do |denuncia| %>
+            <tr>
+              <td><%= fecha_y_hora(denuncia.resuelta_at) %></td>
+              <td><%= contenido_denunciado(denuncia) %></td>
+              <td><%= denuncia.osteopath.nombre_completo %></td>
+              <td><%= denuncia.nombre_resultado %></td>
+              <td><%= denuncia.resuelta_por&.nombre_completo || "—" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>

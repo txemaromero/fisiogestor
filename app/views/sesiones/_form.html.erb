@@ -1,0 +1,64 @@
+<%# Formulario de una sesión de un diagnóstico guardado. Las técnicas son filas que se añaden y quitan sin
+    recargar (filas_anidadas_controller.js); al guardar, la sesión queda con exactamente esas técnicas. %>
+<%= form_with model: sesion, scope: :sesion, url: sesion.new_record? ? diagnosis_sesiones_path(@diagnosis) : sesion_path(sesion),
+              id: "formulario-sesion" do |f| %>
+  <%= render "shared/errores", objeto: sesion %>
+
+  <div class="card text-bg-dark mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-4">
+          <%= f.label :fecha, class: "form-label" %>
+          <%= f.date_field :fecha, class: clase_campo(sesion, :fecha) %>
+        </div>
+        <div class="col-sm-4">
+          <%= f.label :escala_dolor_pre_sesion, class: "form-label" %>
+          <%= f.select :escala_dolor_pre_sesion, opciones_escala_dolor, {},
+                       class: clase_campo(sesion, :escala_dolor_pre_sesion, "form-select") %>
+        </div>
+        <div class="col-sm-4">
+          <%= f.label :escala_dolor_post_sesion, class: "form-label" %>
+          <%= f.select :escala_dolor_post_sesion, opciones_escala_dolor, {},
+                       class: clase_campo(sesion, :escala_dolor_post_sesion, "form-select") %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mb-4" data-controller="filas-anidadas">
+    <h2 class="h5">Técnicas aplicadas</h2>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm align-middle tabla-editable" id="tecnicas-sesion">
+        <thead>
+          <tr>
+            <th class="columna-tecnica">Nombre técnica</th>
+            <th>Descripción (solo si la técnica es nueva)</th>
+            <th class="text-end columna-acciones">
+              <button type="button" class="btn btn-sm btn-success px-3" title="Añadir técnica"
+                      aria-label="Añadir técnica" data-action="filas-anidadas#agregarFila">+</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody data-filas-anidadas-target="filas">
+          <%= render partial: "sesiones/fila_tecnica", collection: @tecnicas, as: :tecnica %>
+        </tbody>
+      </table>
+    </div>
+    <template data-filas-anidadas-target="plantilla">
+      <%= render "sesiones/fila_tecnica", tecnica: {} %>
+    </template>
+    <datalist id="catalogo-tecnicas">
+      <% @nombres_tecnicas.each do |nombre| %>
+        <option value="<%= nombre %>"></option>
+      <% end %>
+    </datalist>
+    <p class="form-text">
+      Elige una técnica del catálogo o escribe una nueva. Quitar una técnica de la sesión no la borra del catálogo.
+    </p>
+  </section>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", visit_path(@diagnosis.visit), class: "btn btn-outline-light" %>
+  </div>
+<% end %>

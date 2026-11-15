@@ -1,0 +1,48 @@
+<%# Gráfica de barras de un informe (geometría en GraficaBarras). Una barra por técnica, en el orden del
+    ranking, con el valor en el extremo. En los informes de efectividad, las barras huecas son técnicas con
+    menos de Treatment::MIN_SESIONES_FIABLE sesiones (poco fiables) y las rojas, medias negativas (el dolor
+    aumentó). La tabla de debajo tiene todos los datos; el SVG no lleva estilos inline. %>
+<div class="grafica-barras mb-3">
+  <% if efectividad %>
+    <ul class="list-inline small text-body-secondary mb-2" id="leyenda-grafica-informe">
+      <li class="list-inline-item me-3"><span class="muestra muestra-positiva"></span><%= Treatment::MIN_SESIONES_FIABLE %> o más sesiones</li>
+      <li class="list-inline-item me-3"><span class="muestra muestra-hueca"></span>Menos de <%= Treatment::MIN_SESIONES_FIABLE %> sesiones (poco fiable)</li>
+      <% if grafica.negativas? %>
+        <li class="list-inline-item"><span class="muestra muestra-negativa"></span>El dolor aumentó</li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <svg viewBox="0 0 <%= GraficaBarras::ANCHO %> <%= grafica.alto %>" role="img" aria-labelledby="titulo-grafica-informe">
+    <title id="titulo-grafica-informe">
+      Gráfica de barras de <%= pluralize(grafica.filas.size, "técnica", plural: "técnicas") %>; la tabla de debajo tiene los datos.
+    </title>
+
+    <% grafica.marcas.each do |valor, x| %>
+      <line class="<%= valor.zero? ? "eje-cero" : "rejilla" %>" x1="<%= x %>" x2="<%= x %>"
+            y1="<%= GraficaBarras::MARGEN[:arriba] %>" y2="<%= grafica.base %>"/>
+      <text class="eje-texto" x="<%= x %>" y="<%= grafica.base + 18 %>" text-anchor="middle"><%= reduccion_dolor(valor).delete_suffix(",00") %></text>
+    <% end %>
+
+    <% grafica.barras.each do |barra| %>
+      <g class="fila-barra">
+        <title><%= barra.fila.titulo %></title>
+        <rect class="zona-fila" x="0" y="<%= barra.y - 5 %>" width="<%= GraficaBarras::ANCHO %>" height="<%= GraficaBarras::GROSOR + 10 %>"/>
+        <text class="etiqueta-barra" x="<%= grafica.izquierda - 10 %>" y="<%= barra.y + GraficaBarras::GROSOR / 2.0 %>"
+              text-anchor="end" dominant-baseline="middle"><%= barra.etiqueta_corta %></text>
+        <% if barra.ruta %>
+          <path class="barra <%= barra.negativa ? "barra-negativa" : "barra-positiva" %> <%= "barra-hueca" unless barra.fila.fiable %>"
+                d="<%= barra.ruta %>"/>
+        <% end %>
+        <text class="valor-barra" x="<%= barra.x_texto %>" y="<%= barra.y + GraficaBarras::GROSOR / 2.0 %>"
+              text-anchor="<%= barra.ancla_texto %>" dominant-baseline="middle"><%= barra.fila.texto_valor %></text>
+      </g>
+    <% end %>
+  </svg>
+
+  <% if grafica.recortada? %>
+    <p class="small text-body-secondary mb-0">
+      La gráfica muestra las <%= GraficaBarras::MAX_BARRAS %> primeras técnicas; la tabla las tiene todas.
+    </p>
+  <% end %>
+</div>

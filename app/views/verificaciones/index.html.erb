@@ -1,0 +1,96 @@
+<% content_for :title, "Profesionales" %>
+
+<h1 class="h3 mb-2">Verificación de profesionales</h1>
+<p class="text-body-secondary">
+  Solo los osteópatas verificados ven lo de otros osteópatas: el filtro de tratamientos, los informes de toda la
+  plataforma, los casos clínicos y los perfiles. Antes de verificar a alguien, busca su número de colegiado en el
+  registro de su colegio profesional y comprueba que el <strong>nombre y los apellidos</strong> coinciden con los
+  de la cuenta; si tienes dudas, contacta con él por el medio que dé el colegio, no por el email de la cuenta.
+  Si cambia el número en su perfil, deja de estar verificado.
+</p>
+
+<section class="mb-4" id="pendientes">
+  <h2 class="h5">Pendientes (<%= @pendientes.size %>)</h2>
+  <% if @pendientes.any? %>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Osteópata</th>
+            <th>Email</th>
+            <th>Número de colegiado</th>
+            <th>Ciudad</th>
+            <th>Registrado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @pendientes.each do |osteopata| %>
+            <tr id="<%= dom_id(osteopata, :pendiente) %>">
+              <td><%= osteopata.nombre_completo %></td>
+              <td><%= osteopata.email %></td>
+              <td class="font-monospace"><%= osteopata.numero_colegiado %></td>
+              <td><%= valor_o_guion(osteopata.ciudad) %></td>
+              <td><%= l(osteopata.created_at.to_date) %></td>
+              <td class="text-end">
+                <%= button_to "Verificar", verificacion_path(osteopata), class: "btn btn-sm btn-success",
+                              aria: { label: "Verificar a #{osteopata.nombre_completo}" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-body-secondary">No hay nadie pendiente de verificar.</p>
+  <% end %>
+  <% if @sin_numero.positive? %>
+    <p class="small text-body-secondary mb-0" id="sin-numero">
+      <%= @sin_numero == 1 ? "1 osteópata no ha escrito" : "#{@sin_numero} osteópatas no han escrito" %>
+      todavía su número de colegiado.
+    </p>
+  <% end %>
+</section>
+
+<section id="verificados">
+  <h2 class="h5">Verificados (<%= @verificados.size %>)</h2>
+  <% if @verificados.any? %>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Osteópata</th>
+            <th>Email</th>
+            <th>Número de colegiado</th>
+            <th>Verificado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @verificados.each do |osteopata| %>
+            <tr id="<%= dom_id(osteopata, :verificado) %>">
+              <td><%= osteopata.nombre_completo %></td>
+              <td><%= osteopata.email %></td>
+              <td class="font-monospace"><%= osteopata.numero_colegiado %></td>
+              <td>
+                <%= l(osteopata.verificado_at.to_date) %>
+                <span class="small text-body-secondary">
+                  por <%= osteopata.verificado_por&.nombre_completo || "la consola del servidor" %>
+                </span>
+              </td>
+              <td class="text-end">
+                <%= button_to "Quitar la verificación", verificacion_path(osteopata), method: :delete,
+                              class: "btn btn-sm btn-outline-danger",
+                              aria: { label: "Quitar la verificación de #{osteopata.nombre_completo}" },
+                              form: { data: { turbo_confirm: "¿Quitar la verificación de #{osteopata.nombre_completo}? " \
+                                                             "Dejará de ver lo de otros osteópatas." } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-body-secondary">Todavía no hay nadie verificado.</p>
+  <% end %>
+</section>

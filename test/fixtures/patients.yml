@@ -1,0 +1,49 @@
+# Las edades se fijan respecto al año actual para que los tests no caduquen.
+# Pacientes de Paco: juan (hombre, 46), maria_torres (mujer, 34), pepe (hombre, 68).
+# Pacientes de Maria: maria_perez (mujer, 40), antonio (hombre, 76).
+# texto_busqueda lo rellena Patient al guardar; los fixtures no pasan por el modelo y se escribe aquí.
+# Todos consienten compartir sus datos (D83); los tests del consentimiento lo retiran donde hace falta.
+juan:
+  osteopath: paco
+  nombre: Juan
+  apellidos: Martínez Campos
+  anyo_nacimiento: <%= Date.current.year - 46 %>
+  sexo: hombre
+  texto_busqueda: juan martinez campos
+  consiente_compartir: true
+
+maria_torres:
+  osteopath: paco
+  nombre: María
+  apellidos: Torres Gutiérrez
+  anyo_nacimiento: <%= Date.current.year - 34 %>
+  sexo: mujer
+  texto_busqueda: maria torres gutierrez
+  consiente_compartir: true
+
+pepe:
+  osteopath: paco
+  nombre: Pepe
+  apellidos: Campos Giménez
+  anyo_nacimiento: <%= Date.current.year - 68 %>
+  sexo: hombre
+  texto_busqueda: pepe campos gimenez
+  consiente_compartir: true
+
+maria_perez:
+  osteopath: maria
+  nombre: María
+  apellidos: Pérez Gil
+  anyo_nacimiento: <%= Date.current.year - 40 %>
+  sexo: mujer
+  texto_busqueda: maria perez gil
+  consiente_compartir: true
+
+antonio:
+  osteopath: maria
+  nombre: Antonio
+  apellidos: López Sanz
+  anyo_nacimiento: <%= Date.current.year - 76 %>
+  sexo: hombre
+  texto_busqueda: antonio lopez sanz
+  consiente_compartir: true

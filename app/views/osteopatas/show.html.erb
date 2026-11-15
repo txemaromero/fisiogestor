@@ -1,0 +1,52 @@
+<% content_for :title, @osteopata.nombre_completo %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <h1 class="h3 mb-0"><%= @osteopata.nombre_completo %></h1>
+      <% if @osteopata.verificado? %>
+        <span class="badge text-bg-success">✓ Colegiado verificado</span>
+      <% else %>
+        <span class="badge text-bg-secondary">Sin verificar</span>
+      <% end %>
+    </div>
+
+    <div class="card text-bg-dark mb-4" id="perfil-osteopata">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Número de colegiado</dt>
+          <dd class="col-sm-8"><%= valor_o_guion(@osteopata.numero_colegiado) %></dd>
+          <dt class="col-sm-4">Especialidad</dt>
+          <dd class="col-sm-8"><%= valor_o_guion(@osteopata.especialidad) %></dd>
+          <dt class="col-sm-4">Ciudad</dt>
+          <dd class="col-sm-8"><%= valor_o_guion(@osteopata.ciudad) %></dd>
+          <dt class="col-sm-4">Presentación</dt>
+          <dd class="col-sm-8 mb-0">
+            <%= @osteopata.presentacion.present? ? simple_format(@osteopata.presentacion, { class: "mb-0" }, wrapper_tag: "p") : "—" %>
+          </dd>
+        </dl>
+      </div>
+      <% if @osteopata == current_osteopath %>
+        <div class="card-footer">
+          <%= link_to "Editar mi perfil", editar_perfil_path, class: "btn btn-sm btn-outline-success" %>
+        </div>
+      <% end %>
+    </div>
+
+    <section id="casos-osteopata">
+      <h2 class="h5">Casos clínicos publicados</h2>
+      <% if @casos.any? %>
+        <ul class="list-group list-group-flush">
+          <% @casos.each do |caso| %>
+            <li class="list-group-item bg-transparent text-light d-flex flex-wrap justify-content-between gap-2">
+              <span><%= link_to caso.titulo, caso, class: "link-light" %> · <%= caso.enfermedad.nombre %></span>
+              <span class="small text-body-secondary"><%= mes_publicacion(caso) %></span>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-body-secondary">Todavía no ha publicado ningún caso.</p>
+      <% end %>
+    </section>
+  </div>
+</div>

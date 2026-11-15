@@ -1,0 +1,10 @@
+<%# Denunciar un caso o un comentario (D91): el formulario está plegado en un <details>, sin JavaScript. %>
+<details class="denunciar">
+  <summary class="btn btn-sm btn-outline-warning" aria-label="<%= etiqueta %>">Denunciar</summary>
+  <%= form_with url: url, scope: :denuncia, class: "mt-2" do |f| %>
+    <%= f.label :motivo, "¿Por qué lo denuncias?", class: "form-label small" %>
+    <%= f.text_area :motivo, rows: 2, maxlength: 500, required: true, class: "form-control form-control-sm",
+                             placeholder: "Por ejemplo: identifica al paciente, es ofensivo, es publicidad…" %>
+    <%= f.submit "Enviar la denuncia", class: "btn btn-sm btn-warning mt-2" %>
+  <% end %>
+</details>

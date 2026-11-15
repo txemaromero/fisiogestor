@@ -1,0 +1,5 @@
+<% content_for :title, "Editar exploración" %>
+
+<h1 class="h3 mb-4">Editar exploración de la visita del <%= fecha_o_guion(@visit.fecha) %></h1>
+
+<%= render "form", examination: @examination %>

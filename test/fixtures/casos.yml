@@ -1,0 +1,6 @@
+# Caso clínico que Paco ha publicado con el diagnóstico de Pepe (que consiente compartir sus datos).
+caso_pepe:
+  diagnosis: diag_pepe
+  osteopath: paco
+  titulo: Hernia discal que no termina de mejorar
+  resumen: El dolor baja de 9 a 4 y se estanca. ¿Qué añadiríais?

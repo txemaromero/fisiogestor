@@ -1,0 +1,83 @@
+<% content_for :title, "Mi cuenta" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-4">Mi cuenta</h1>
+
+    <div class="card text-bg-dark mb-4" id="datos-cuenta">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Nombre</dt>
+          <dd class="col-sm-8"><%= current_osteopath.nombre_completo %></dd>
+          <dt class="col-sm-4">Email</dt>
+          <dd class="col-sm-8"><%= current_osteopath.email %></dd>
+          <% if current_osteopath.admin? %>
+            <dt class="col-sm-4">Permisos</dt>
+            <dd class="col-sm-8 mb-0">Administrador: catálogo, verificación de profesionales y moderación</dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+
+    <section class="card text-bg-dark mb-4" id="perfil-profesional">
+      <div class="card-body">
+        <h2 class="h5">Perfil profesional</h2>
+        <dl class="row">
+          <dt class="col-sm-4">Número de colegiado</dt>
+          <dd class="col-sm-8"><%= valor_o_guion(current_osteopath.numero_colegiado) %></dd>
+          <dt class="col-sm-4">Especialidad</dt>
+          <dd class="col-sm-8"><%= valor_o_guion(current_osteopath.especialidad) %></dd>
+          <dt class="col-sm-4">Ciudad</dt>
+          <dd class="col-sm-8 mb-0"><%= valor_o_guion(current_osteopath.ciudad) %></dd>
+        </dl>
+        <p id="estado-verificacion">
+          <% if current_osteopath.verificado? %>
+            ✓ Verificado el <%= l(current_osteopath.verificado_at.to_date) %>: ves los pacientes de otros osteópatas que
+            consienten (filtro, informes de toda la plataforma y casos clínicos) y los demás ven tu perfil.
+          <% elsif current_osteopath.numero_colegiado.present? %>
+            Pendiente de verificación: un administrador comprobará tu número de colegiado. Hasta entonces solo ves tus
+            pacientes: ni el filtro de tratamientos, ni los informes de toda la plataforma, ni los casos clínicos.
+          <% else %>
+            Sin número de colegiado: escríbelo para que un administrador te verifique. Hasta entonces solo ves tus
+            pacientes: ni el filtro de tratamientos, ni los informes de toda la plataforma, ni los casos clínicos.
+          <% end %>
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <%= link_to "Editar perfil", editar_perfil_path, class: "btn btn-outline-light" %>
+          <% if current_osteopath.verificado? %>
+            <%= link_to "Ver mi perfil", osteopata_path(current_osteopath), class: "btn btn-outline-light" %>
+          <% end %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card text-bg-dark" id="segundo-factor">
+      <div class="card-body">
+        <h2 class="h5">Segundo factor</h2>
+        <p class="mb-2">
+          ✓ Activado el <%= l(current_osteopath.otp_activado_at.to_date) %>. Al entrar se pide, además de la
+          clave, el código de tu app de autenticación.
+        </p>
+        <% restantes = current_osteopath.codigos_recuperacion_restantes %>
+        <p class="<%= restantes <= 3 ? "text-warning-emphasis" : "text-body-secondary" %>" id="codigos-restantes">
+          <%= "⚠ " if restantes <= 3 %>Te <%= restantes == 1 ? "queda" : "quedan" %>
+          <%= pluralize(restantes, "código", plural: "códigos") %> de recuperación.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 align-items-end">
+          <%= link_to "Cambiar de dispositivo", nuevo_segundo_factor_path, class: "btn btn-outline-light" %>
+          <%# Sin Turbo: la respuesta enseña los códigos nuevos directamente, sin redirigir. %>
+          <%= form_with url: codigos_recuperacion_path, method: :post, id: "formulario-codigos",
+                        class: "d-flex flex-wrap gap-2 align-items-end", data: { turbo: false } do |f| %>
+            <div>
+              <%= f.label :codigo, "Código de la app", class: "form-label small" %>
+              <%= f.text_field :codigo, autocomplete: "one-time-code", inputmode: "numeric", maxlength: 6,
+                                        class: "form-control font-monospace" %>
+            </div>
+            <%= f.submit "Generar códigos de recuperación nuevos", class: "btn btn-outline-success" %>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

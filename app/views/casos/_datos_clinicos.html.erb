@@ -1,0 +1,51 @@
+<%# Datos clínicos que se publican de un caso (D89): sin nombre ni fechas, la edad en tramos y las sesiones
+    contadas en días desde la primera. Se usa en el caso y en el formulario para publicarlo. %>
+<section class="card text-bg-dark mb-4" id="datos-caso">
+  <div class="card-body">
+    <dl class="row mb-3">
+      <dt class="col-sm-4">Paciente</dt>
+      <dd class="col-sm-8"><%= perfil_paciente_caso(caso) %></dd>
+      <dt class="col-sm-4">Enfermedad</dt>
+      <dd class="col-sm-8"><%= caso.enfermedad.nombre %></dd>
+      <dt class="col-sm-4">Sesiones</dt>
+      <dd class="col-sm-8 mb-0">
+        <%= pluralize(caso.sesiones.size, "realizada", plural: "realizadas") %> de
+        <%= caso.diagnosis.sesiones_recomendadas %> recomendadas
+      </dd>
+    </dl>
+
+    <% if caso.sesiones.any? %>
+      <div class="table-responsive">
+        <table class="table table-dark table-sm align-middle" id="sesiones-caso">
+          <thead>
+            <tr>
+              <th>Sesión</th>
+              <th>Día</th>
+              <th class="text-center">Dolor antes</th>
+              <th class="text-center">Dolor después</th>
+              <th>Técnicas aplicadas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% caso.sesiones.each.with_index(1) do |sesion, numero| %>
+              <tr>
+                <td><%= numero %></td>
+                <td><%= valor_o_guion(caso.dia(sesion)) %></td>
+                <td class="text-center"><%= valor_o_guion(sesion.escala_dolor_pre_sesion) %></td>
+                <td class="text-center"><%= valor_o_guion(sesion.escala_dolor_post_sesion) %></td>
+                <td><%= valor_o_guion(sesion.treatments.map(&:nombre).sort.join(", ")) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-body-secondary">Todavía no hay sesiones realizadas.</p>
+    <% end %>
+
+    <% unless grafica.vacia? %>
+      <h3 class="h6 mt-3">Evolución del dolor</h3>
+      <%= render "patients/grafica_dolor", grafica: grafica %>
+    <% end %>
+  </div>
+</section>

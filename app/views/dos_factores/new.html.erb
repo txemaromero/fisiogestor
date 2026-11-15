@@ -1,0 +1,73 @@
+<% cambio = current_osteopath.otp_activado? %>
+<% content_for :title, cambio ? "Cambiar de dispositivo" : "Activar el segundo factor" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-2"><%= cambio ? "Cambiar de dispositivo" : "Activa el segundo factor" %></h1>
+    <p class="text-body-secondary">
+      <% if cambio %>
+        Da de alta el segundo factor en el móvil nuevo. Hasta que lo confirmes, sigue valiendo el anterior.
+      <% else %>
+        Para proteger los datos de salud de los pacientes, todas las cuentas entran con la clave y con un código
+        de una app de autenticación. Actívalo para empezar a usar la aplicación.
+      <% end %>
+    </p>
+
+    <div class="card text-bg-dark mb-3">
+      <div class="card-body">
+        <ol class="mb-0">
+          <li class="mb-3">
+            Instala en el móvil una app de autenticación: Google Authenticator, Microsoft Authenticator,
+            1Password, Authy…
+          </li>
+          <li class="mb-3">
+            Añade una cuenta escaneando este código QR:
+            <div class="my-3">
+              <%= image_tag @qr, alt: "Código QR para la app de autenticación", width: 240, height: 240,
+                                 class: "rounded border border-light", id: "qr-segundo-factor" %>
+            </div>
+            <span class="small text-body-secondary">¿No puedes escanearlo? Escribe esta clave en la app:</span>
+            <div class="font-monospace fs-5 user-select-all" id="clave-segundo-factor"><%= @secreto.scan(/.{1,4}/).join(" ") %></div>
+          </li>
+          <li>
+            Escribe el código de 6 cifras que muestra la app:
+            <%# Sin Turbo: la respuesta enseña los códigos de recuperación directamente, sin redirigir. %>
+            <%= form_with url: segundo_factor_path, method: :post, id: "formulario-segundo-factor", class: "mt-2",
+                          data: { turbo: false } do |f| %>
+              <div class="row g-2 align-items-end">
+                <div class="<%= cambio ? "col-md-4" : "col-sm-5" %>">
+                  <%= f.label :codigo, cambio ? "Código de la app nueva" : "Código de la app", class: "form-label" %>
+                  <%= f.text_field :codigo, autocomplete: "one-time-code", inputmode: "numeric", maxlength: 6,
+                                            class: "form-control font-monospace" %>
+                </div>
+                <% if cambio %>
+                  <%# Para cambiar de dispositivo hay que demostrar que se tiene el actual (D92). %>
+                  <div class="col-md-4">
+                    <%= f.label :clave, "Tu clave actual", class: "form-label" %>
+                    <%= f.password_field :clave, autocomplete: "current-password", class: "form-control" %>
+                  </div>
+                  <div class="col-md-4">
+                    <%= f.label :codigo_actual, "Código del móvil actual", class: "form-label" %>
+                    <%= f.text_field :codigo_actual, autocomplete: "off", maxlength: 11, spellcheck: false,
+                                                     class: "form-control font-monospace",
+                                                     aria: { describedby: "ayuda-codigo-actual" } %>
+                  </div>
+                  <div class="col-12 form-text mt-1" id="ayuda-codigo-actual">
+                    Si ya no tienes el móvil anterior, escribe uno de tus códigos de recuperación.
+                  </div>
+                <% end %>
+                <div class="<%= cambio ? "col-12 mt-3" : "col-sm-2" %>">
+                  <%= f.submit cambio ? "Cambiar de dispositivo" : "Activar", class: "btn btn-success #{'w-100' unless cambio}" %>
+                </div>
+              </div>
+            <% end %>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <% if cambio %>
+      <%= link_to "Cancelar", cuenta_path, class: "btn btn-outline-light" %>
+    <% end %>
+  </div>
+</div>

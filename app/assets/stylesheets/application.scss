@@ -1,0 +1,355 @@
+// Estilos de RedSocialFisios: Bootstrap 5 con el modo oscuro (data-bs-theme="dark" en el layout).
+
+// En modo oscuro Bootstrap usa un fondo casi negro; usamos un gris oscuro ($gray-800)
+// para que las tablas .table-dark destaquen sobre el fondo.
+$body-bg-dark: #343a40;
+
+@import "bootstrap";
+
+// --- Navbar ---------------------------------------------------------------------------------------
+// Sobre el verde, el gris translúcido que Bootstrap usa para los enlaces se lee mal.
+.navbar.bg-success {
+  --bs-navbar-color: rgba(255, 255, 255, 0.85);
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-active-color: #fff;
+
+  .nav-link.active {
+    font-weight: 600;
+  }
+}
+
+// --- Botones de contorno --------------------------------------------------------------------------
+// En modo oscuro Bootstrap mantiene el verde y el rojo del modo claro, con poco contraste sobre el
+// fondo oscuro: se usan tonos más claros (al pasar el ratón se rellenan con el color normal).
+[data-bs-theme="dark"] {
+  .btn-outline-success {
+    --bs-btn-color: #{$green-300};
+    --bs-btn-border-color: #{$green-300};
+  }
+
+  .btn-outline-danger {
+    --bs-btn-color: #{$red-300};
+    --bs-btn-border-color: #{$red-300};
+  }
+}
+
+// --- Tablas editables (antecedentes del paciente) -------------------------------------------------
+// En pantallas estrechas se desplazan en horizontal en lugar de encoger los campos, y la columna de
+// los botones (+ y Borrar) se queda fija a la derecha para que siempre esté a mano.
+.tabla-editable {
+  min-width: 36rem;
+
+  th:last-child,
+  td:last-child {
+    position: sticky;
+    right: 0;
+  }
+
+  .columna-familiar { width: 22%; }
+  .columna-tipo { width: 25%; }
+  .columna-tecnica { width: 40%; }
+  .columna-acciones { width: 1%; }
+}
+
+// --- Progreso de las sesiones de un diagnóstico ---------------------------------------------------
+// <progress> nativo: la barra de Bootstrap necesita un width inline, que la CSP no permite.
+.progreso-sesiones {
+  appearance: none;
+  width: 12rem;
+  height: 0.5rem;
+  border: 0;
+  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, 0.12);
+
+  &::-webkit-progress-bar {
+    border-radius: 1rem;
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  &::-webkit-progress-value {
+    border-radius: 1rem;
+    background-color: $green-300;
+  }
+
+  &::-moz-progress-bar {
+    border-radius: 1rem;
+    background-color: $green-300;
+  }
+}
+
+// --- Gráfica de evolución del dolor (ficha del paciente) ------------------------------------------
+// Un tono (azul) en dos pasos: antes, el más oscuro; después, el más claro. Validados sobre el fondo de
+// la tarjeta (#212529) como rampa ordinal: contraste 4,2:1 del más oscuro y pasos bien separados.
+.grafica-dolor {
+  --grafica-antes: #3987e5;
+  --grafica-despues: #9ec5f4;
+  --grafica-superficie: #{$gray-900};
+  position: relative;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .rejilla {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .eje-base {
+    stroke: rgba(255, 255, 255, 0.28);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .eje-texto {
+    fill: var(--bs-secondary-color);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tramo {
+    stroke: $gray-600;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  // El aro del color de la tarjeta separa los puntos del tramo y entre sí.
+  .punto {
+    stroke: var(--grafica-superficie);
+    stroke-width: 2;
+  }
+
+  .punto-antes { fill: var(--grafica-antes); }
+  .punto-despues { fill: var(--grafica-despues); }
+
+  .etiqueta {
+    fill: var(--bs-body-color);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .zona {
+    fill: transparent;
+    pointer-events: all;
+    outline: none;
+
+    &.activa,
+    &:focus-visible {
+      fill: rgba(255, 255, 255, 0.07);
+    }
+  }
+
+  .marca {
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    margin-right: 0.375rem;
+    border-radius: 50%;
+  }
+
+  .marca-antes { background-color: var(--grafica-antes); }
+  .marca-despues { background-color: var(--grafica-despues); }
+
+  .grafica-tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    min-width: 9rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.375rem;
+    background-color: $gray-800;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.4);
+    font-size: 0.875rem;
+    pointer-events: none;
+
+    strong {
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .detalle {
+      margin-top: 0.25rem;
+      color: var(--bs-secondary-color);
+      font-size: 0.8125rem;
+    }
+  }
+
+  // Claves de línea (no cuadros) en el tooltip, del color de cada serie.
+  .clave {
+    display: inline-block;
+    width: 0.875rem;
+    height: 2px;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .clave-antes { background-color: var(--grafica-antes); }
+  .clave-despues { background-color: var(--grafica-despues); }
+}
+
+// --- Catálogo (administradores) ------------------------------------------------------------------
+.tabla-catalogo {
+  min-width: 44rem;
+
+  .columna-nombre { width: 28%; }
+  .columna-usos { width: 7rem; }
+  .columna-acciones-catalogo { width: 15rem; }
+}
+
+// --- Agenda -------------------------------------------------------------------------------------
+// Cada día es una tabla: con anchos fijos, las columnas de todos los días quedan alineadas.
+.tabla-agenda {
+  table-layout: fixed;
+  min-width: 44rem;
+
+  .columna-paciente { width: 26%; }
+  .columna-diagnostico { width: 32%; }
+  .columna-boton { width: 6.5rem; }
+}
+
+// --- Informe de la visita (para imprimir o guardar como PDF) --------------------------------------
+// Tema claro. La gráfica usa el mismo azul en dos pasos validados sobre blanco (rampa ordinal): aquí el
+// más destacado, «después», es el oscuro (#184f95); «antes» es #5598e7, con contraste 3:1.
+.informe {
+  .grafica-dolor {
+    --grafica-antes: #5598e7;
+    --grafica-despues: #184f95;
+    --grafica-superficie: #fff;
+
+    .rejilla { stroke: rgba(0, 0, 0, 0.08); }
+    .eje-base { stroke: rgba(0, 0, 0, 0.35); }
+    .tramo { stroke: $gray-500; }
+    .zona.activa,
+    .zona:focus-visible { fill: rgba(0, 0, 0, 0.05); }
+    .grafica-tooltip { background-color: #fff; border-color: rgba(0, 0, 0, 0.15); }
+  }
+
+  // Los navegadores no imprimen los colores de fondo salvo que se pida: la leyenda de la gráfica los usa.
+  .marca,
+  .clave {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+@media print {
+  @page { margin: 16mm 14mm; }
+
+  .no-imprimir,
+  .informe details,
+  .informe .grafica-tooltip {
+    display: none !important;
+  }
+
+  .informe {
+    font-size: 10.5pt;
+
+    main.container {
+      max-width: none;
+      padding: 0 !important;
+    }
+
+    .evitar-corte,
+    tr {
+      break-inside: avoid;
+    }
+
+    h2 { break-after: avoid; }
+  }
+}
+
+// --- Informes -------------------------------------------------------------------------------------
+// Gráfica de barras de los informes (D79). Azul: valores positivos; rojo: reducción media negativa (el
+// dolor aumentó). Validados como par categórico sobre la tarjeta (#212529). Las técnicas con pocas sesiones
+// van huecas (contorno y un velo del 12 %): la forma las distingue sin depender del color.
+.grafica-barras {
+  --barra-positiva: #3987e5;
+  --barra-negativa: #e66767;
+
+  // A todo el ancho de la página el SVG se escalaría casi al doble y los textos quedarían enormes.
+  svg {
+    display: block;
+    width: 100%;
+    max-width: 50rem;
+    height: auto;
+  }
+
+  .rejilla {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .eje-cero {
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .eje-texto,
+  .valor-barra {
+    fill: var(--bs-secondary-color);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .etiqueta-barra {
+    fill: var(--bs-body-color);
+    font-size: 13px;
+  }
+
+  .zona-fila { fill: transparent; }
+  .fila-barra:hover .zona-fila { fill: rgba(255, 255, 255, 0.05); }
+
+  .barra { stroke-width: 1.5; }
+  .barra-positiva { fill: var(--barra-positiva); stroke: var(--barra-positiva); }
+  .barra-negativa { fill: var(--barra-negativa); stroke: var(--barra-negativa); }
+  .barra-hueca { fill-opacity: 0.12; }
+
+  .muestra {
+    display: inline-block;
+    width: 0.875rem;
+    height: 0.625rem;
+    margin-right: 0.375rem;
+    border: 1.5px solid var(--barra-positiva);
+    border-radius: 2px;
+    background-color: var(--barra-positiva);
+    vertical-align: baseline;
+  }
+
+  .muestra-hueca { background-color: rgba(57, 135, 229, 0.12); }
+  .muestra-negativa { border-color: var(--barra-negativa); background-color: var(--barra-negativa); }
+}
+
+#tabla-informe .columna-posicion {
+  width: 3rem;
+}
+
+// Los anchos de columna están aquí y no en atributos style="..." porque la política de seguridad de
+// contenidos (CSP) no permite estilos inline.
+
+// --- Asistente de visita --------------------------------------------------------------------------
+// Las pestañas solo indican el paso actual (no son enlaces).
+#pasos-asistente .nav-link:not(.active) {
+  color: var(--bs-secondary-color);
+}
+
+// --- Casos clínicos (D89-D91) ---------------------------------------------------------------------
+// «Denunciar» es un <details> cuyo <summary> parece un botón: sin el triángulo del navegador.
+.denunciar > summary {
+  list-style: none;
+}
+
+.denunciar > summary::-webkit-details-marker {
+  display: none;
+}
+
+.denunciar[open] {
+  min-width: 18rem;
+}

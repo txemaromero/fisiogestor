@@ -1,0 +1,17 @@
+<%# Fila de una técnica en el formulario de la sesión (tecnica: { "nombre", "descripcion" }). Los campos se
+    envían como lista (sesion[tecnicas][][...]); todas las filas se pueden quitar sin más, porque al guardar
+    se envía la lista completa. %>
+<tr data-nuevo="true">
+  <td>
+    <%= text_field_tag "sesion[tecnicas][][nombre]", tecnica["nombre"], id: nil, list: "catalogo-tecnicas",
+                       autocomplete: "off", maxlength: 100, aria: { label: "Nombre técnica" },
+                       class: "form-control form-control-sm" %>
+  </td>
+  <td>
+    <%= text_field_tag "sesion[tecnicas][][descripcion]", tecnica["descripcion"], id: nil, maxlength: 1000,
+                       aria: { label: "Descripción de la técnica" }, class: "form-control form-control-sm" %>
+  </td>
+  <td class="text-end">
+    <button type="button" class="btn btn-sm btn-outline-danger" data-action="filas-anidadas#borrarFila">Borrar</button>
+  </td>
+</tr>

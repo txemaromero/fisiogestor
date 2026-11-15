@@ -1,0 +1,48 @@
+<% content_for :title, "Perfil profesional" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-2">Perfil profesional</h1>
+    <p class="text-body-secondary">
+      Lo ven los osteópatas verificados, junto a los casos clínicos y comentarios que publiques.
+    </p>
+
+    <%= form_with model: @osteopata, url: perfil_path, method: :patch, id: "formulario-perfil" do |f| %>
+      <%= render "shared/errores", objeto: @osteopata %>
+
+      <div class="card text-bg-dark mb-3">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <%= f.label :numero_colegiado, "Número de colegiado", class: "form-label" %>
+              <%= f.text_field :numero_colegiado, maxlength: 30, class: clase_campo(@osteopata, :numero_colegiado),
+                                                  aria: { describedby: "ayuda-colegiado" } %>
+              <div class="form-text" id="ayuda-colegiado">
+                Un administrador lo comprobará en el registro de tu colegio profesional para verificarte. Si lo
+                cambias, tendrá que volver a verificarlo.
+              </div>
+            </div>
+            <div class="col-md-6">
+              <%= f.label :ciudad, "Ciudad", class: "form-label" %>
+              <%= f.text_field :ciudad, maxlength: 100, class: clase_campo(@osteopata, :ciudad) %>
+            </div>
+            <div class="col-12">
+              <%= f.label :especialidad, "Especialidad", class: "form-label" %>
+              <%= f.text_field :especialidad, maxlength: 100, class: clase_campo(@osteopata, :especialidad),
+                                              placeholder: "Por ejemplo: osteopatía estructural, pediátrica, deportiva…" %>
+            </div>
+            <div class="col-12">
+              <%= f.label :presentacion, "Presentación", class: "form-label" %>
+              <%= f.text_area :presentacion, rows: 4, maxlength: 1000, class: clase_campo(@osteopata, :presentacion) %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <%= f.submit "Guardar", class: "btn btn-success" %>
+        <%= link_to "Cancelar", cuenta_path, class: "btn btn-outline-light" %>
+      </div>
+    <% end %>
+  </div>
+</div>

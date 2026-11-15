@@ -1,0 +1,31 @@
+<% content_for :title, "Cambiar la clave" %>
+
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-6 col-lg-4">
+    <div class="card text-bg-dark shadow">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-4 text-center">Elige una clave nueva</h1>
+
+        <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f| %>
+          <%= render "devise/shared/error_messages", resource: resource %>
+          <%= f.hidden_field :reset_password_token %>
+
+          <div class="mb-3">
+            <%= f.label :password, "Clave nueva", class: "form-label" %>
+            <%= f.password_field :password, autofocus: true, autocomplete: "new-password",
+                                            class: clase_campo(resource, :password), aria: { describedby: "ayuda-clave" } %>
+            <div id="ayuda-clave" class="form-text">Al menos debe contener <%= @minimum_password_length || 6 %> caracteres.</div>
+          </div>
+
+          <div class="mb-4">
+            <%= f.label :password_confirmation, "Confirmación de la clave", class: "form-label" %>
+            <%= f.password_field :password_confirmation, autocomplete: "new-password",
+                                                         class: clase_campo(resource, :password_confirmation) %>
+          </div>
+
+          <%= f.submit "Cambiar la clave", class: "btn btn-success w-100" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

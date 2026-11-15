@@ -1,0 +1,108 @@
+<%= form_with model: patient, id: "formulario-paciente" do |f| %>
+  <%= render "shared/errores", objeto: patient %>
+
+  <div class="card text-bg-dark mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= f.label :nombre, "Nombre", class: "form-label" %>
+          <%= f.text_field :nombre, class: clase_campo(patient, :nombre), autofocus: patient.new_record? %>
+        </div>
+        <div class="col-md-6">
+          <%= f.label :apellidos, "Apellidos", class: "form-label" %>
+          <%= f.text_field :apellidos, class: clase_campo(patient, :apellidos) %>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :anyo_nacimiento, "Año nacimiento", class: "form-label" %>
+          <%= f.select :anyo_nacimiento, Date.current.year.downto(1900).to_a, { include_blank: "Selecciona…" },
+                       class: clase_campo(patient, :anyo_nacimiento, "form-select") %>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :sexo, "Sexo", class: "form-label" %>
+          <%= f.select :sexo, opciones_enum(:sex_type, Patient.sexos.keys), { include_blank: "Selecciona…" },
+                       class: clase_campo(patient, :sexo, "form-select") %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Consentimiento (D83): sin él, los datos clínicos del paciente solo los ve su osteópata. %>
+  <div class="card text-bg-dark mb-4" id="consentimiento">
+    <div class="card-body">
+      <div class="form-check">
+        <%= f.check_box :consiente_compartir, class: "form-check-input" %>
+        <%= f.label :consiente_compartir, "El paciente consiente compartir sus datos clínicos con los demás osteópatas de la plataforma",
+                    class: "form-check-label fw-semibold" %>
+      </div>
+      <p class="form-text mb-0">
+        Sin su nombre ni apellidos: edad, sexo, antecedentes, diagnósticos, sesiones y técnicas aplicadas, en el
+        filtro de tratamientos y en los informes de toda la plataforma. Si no consiente, solo los ves tú.
+        Puede retirar el consentimiento cuando quiera.
+      </p>
+    </div>
+  </div>
+
+  <section class="mb-4" data-controller="filas-anidadas">
+    <h2 class="h5">Antecedentes familiares</h2>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm align-middle tabla-editable" id="antecedentes-familiares">
+        <thead>
+          <tr>
+            <th class="columna-familiar">Familiar</th>
+            <th class="columna-tipo">Tipo</th>
+            <th>Descripción</th>
+            <th class="text-end columna-acciones">
+              <button type="button" class="btn btn-sm btn-success px-3" title="Añadir antecedente familiar"
+                      aria-label="Añadir antecedente familiar" data-action="filas-anidadas#agregarFila">+</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody data-filas-anidadas-target="filas">
+          <%= f.fields_for :family_medical_backgrounds, include_id: false do |ff| %>
+            <%= render "fila_antecedente_familiar", f: ff %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <template data-filas-anidadas-target="plantilla">
+      <%= f.fields_for :family_medical_backgrounds, FamilyMedicalBackground.new, child_index: "NEW_RECORD", include_id: false do |ff| %>
+        <%= render "fila_antecedente_familiar", f: ff %>
+      <% end %>
+    </template>
+  </section>
+
+  <section class="mb-4" data-controller="filas-anidadas">
+    <h2 class="h5">Antecedentes personales</h2>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm align-middle tabla-editable" id="antecedentes-personales">
+        <thead>
+          <tr>
+            <th class="columna-tipo">Tipo</th>
+            <th>Descripción</th>
+            <th class="text-end columna-acciones">
+              <button type="button" class="btn btn-sm btn-success px-3" title="Añadir antecedente personal"
+                      aria-label="Añadir antecedente personal" data-action="filas-anidadas#agregarFila">+</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody data-filas-anidadas-target="filas">
+          <%= f.fields_for :personal_medical_backgrounds, include_id: false do |ff| %>
+            <%= render "fila_antecedente_personal", f: ff %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <template data-filas-anidadas-target="plantilla">
+      <%= f.fields_for :personal_medical_backgrounds, PersonalMedicalBackground.new, child_index: "NEW_RECORD", include_id: false do |ff| %>
+        <%= render "fila_antecedente_personal", f: ff %>
+      <% end %>
+    </template>
+  </section>
+
+  <p class="form-text">Los antecedentes son opcionales: pulsa <strong>+</strong> para añadir una fila.</p>
+
+  <div class="d-flex gap-2">
+    <%= f.submit patient.new_record? ? "Crear" : "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", patient.new_record? ? patients_path : patient_path(patient), class: "btn btn-outline-light" %>
+  </div>
+<% end %>

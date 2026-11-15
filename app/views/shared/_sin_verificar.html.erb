@@ -1,0 +1,20 @@
+<%# Para quien aún no está verificado (D88, D94): por qué no ve lo de otros osteópatas y cómo conseguirlo.
+    Uso: render "shared/sin_verificar", que: "los casos clínicos" %>
+<div class="card text-bg-dark" id="sin-verificar">
+  <div class="card-body">
+    <p>
+      Los datos de los pacientes de otros osteópatas (<%= que %>) son solo para profesionales: hace falta que
+      <strong>un administrador verifique tu número de colegiado</strong>. Mientras tanto, la aplicación funciona
+      igual con tus propios pacientes.
+    </p>
+    <% if current_osteopath.numero_colegiado.present? %>
+      <p class="mb-0">
+        Tu número de colegiado (<%= current_osteopath.numero_colegiado %>) está pendiente de verificación. Cuando
+        un administrador lo compruebe, podrás entrar.
+      </p>
+    <% else %>
+      <p>Escribe tu número de colegiado en tu perfil para que un administrador pueda verificarlo.</p>
+      <%= link_to "Completar mi perfil", editar_perfil_path, class: "btn btn-success" %>
+    <% end %>
+  </div>
+</div>

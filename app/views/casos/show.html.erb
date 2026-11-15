@@ -1,0 +1,133 @@
+<% content_for :title, @caso.titulo %>
+<% autor = @caso.autor?(current_osteopath) %>
+
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <p class="mb-2"><%= link_to "← Casos clínicos", casos_path, class: "link-light small" %></p>
+
+    <% if !@caso.en_la_red? %>
+      <%# Retirado al retirar el paciente el consentimiento (D96): solo lo ve su autor. %>
+      <div class="alert alert-secondary d-flex flex-wrap justify-content-between align-items-center gap-2" id="aviso-caso">
+        <span>
+          Retirado de la red porque el paciente retiró el consentimiento: solo lo ves tú, y no admite comentarios.
+          <% if @caso.paciente.consiente_compartir? %>Ha vuelto a consentir: puedes volver a publicarlo.<% end %>
+        </span>
+        <% if autor && @caso.paciente.consiente_compartir? %>
+          <%= button_to "Volver a publicar", republicar_caso_path(@caso), method: :patch, class: "btn btn-sm btn-success",
+                        form: { data: { turbo_confirm: "¿Volver a publicar el caso? Lo verán otra vez los osteópatas verificados." } } %>
+        <% end %>
+      </div>
+    <% elsif @caso.oculto? %>
+      <div class="alert alert-warning" id="aviso-caso">
+        ⚠ Oculto por la moderación: solo lo ven su autor y los administradores, y no admite comentarios.
+      </div>
+    <% end %>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+      <div>
+        <h1 class="h3 mb-1"><%= @caso.titulo %></h1>
+        <p class="text-body-secondary mb-0">
+          Publicado por <%= enlace_osteopata(@caso.osteopath) %> en <%= mes_publicacion(@caso) %>
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2 align-items-start">
+        <% if autor %>
+          <%= link_to "Editar", edit_caso_path(@caso), class: "btn btn-outline-success" %>
+          <%= button_to "Borrar", @caso, method: :delete, class: "btn btn-outline-danger",
+                        form: { data: { turbo_confirm: "¿Seguro que quieres borrar este caso clínico? Se borrarán también " \
+                                                       "sus comentarios. Los datos del paciente no cambian." } } %>
+        <% else %>
+          <%= formulario_denuncia(denuncia_caso_path(@caso), "Denunciar este caso") %>
+        <% end %>
+      </div>
+    </div>
+
+    <section class="card text-bg-dark mb-4" id="resumen-caso">
+      <div class="card-body"><%= simple_format(@caso.resumen, {}, wrapper_tag: "p") %></div>
+    </section>
+
+    <%= render "casos/datos_clinicos", caso: @caso, grafica: @grafica %>
+
+    <section class="mb-4" id="tecnicas-sugeridas">
+      <h2 class="h5">Técnicas sugeridas</h2>
+      <% sugeridas = @caso.tecnicas_sugeridas.to_a %>
+      <% if sugeridas.any? %>
+        <ul class="list-inline mb-0">
+          <% sugeridas.each do |tecnica| %>
+            <li class="list-inline-item mb-2">
+              <span class="badge text-bg-success fs-6 fw-normal" title="<%= tecnica.descripcion %>">
+                <%= tecnica.nombre %> · <%= pluralize(tecnica.veces, "vez", plural: "veces") %>
+              </span>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-body-secondary mb-0">Nadie ha sugerido técnicas todavía.</p>
+      <% end %>
+    </section>
+
+    <section id="comentarios">
+      <h2 class="h5"><%= pluralize(@comentarios.size, "comentario", plural: "comentarios") %></h2>
+
+      <% @comentarios.each do |comentario| %>
+        <article class="card text-bg-dark mb-3" id="<%= dom_id(comentario) %>">
+          <div class="card-body">
+            <% if comentario.oculto? %>
+              <p class="text-body-secondary fst-italic mb-0">Comentario oculto por la moderación.</p>
+            <% else %>
+              <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                <span class="small text-body-secondary">
+                  <%= enlace_osteopata(comentario.osteopath) %> · <%= fecha_y_hora(comentario.created_at) %>
+                </span>
+                <div class="d-flex gap-2 align-items-start">
+                  <% if comentario.autor?(current_osteopath) %>
+                    <%= button_to "Borrar", comentario_path(comentario), method: :delete, class: "btn btn-sm btn-outline-danger",
+                                  aria: { label: "Borrar mi comentario" },
+                                  form: { data: { turbo_confirm: "¿Seguro que quieres borrar tu comentario?" } } %>
+                  <% else %>
+                    <%= formulario_denuncia(denuncia_comentario_path(comentario), "Denunciar el comentario de #{comentario.osteopath.nombre_completo}") %>
+                  <% end %>
+                </div>
+              </div>
+              <% if comentario.texto.present? %>
+                <%= simple_format(comentario.texto, { class: "mb-2" }, wrapper_tag: "p") %>
+              <% end %>
+              <% if comentario.treatments.any? %>
+                <p class="mb-0 small">
+                  Sugiere:
+                  <% comentario.treatments.each do |tecnica| %>
+                    <span class="badge text-bg-success fw-normal"><%= tecnica.nombre %></span>
+                  <% end %>
+                </p>
+              <% end %>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+
+      <% if @caso.compartido? %>
+        <%= form_with model: @comentario, url: caso_comentarios_path(@caso), id: "formulario-comentario",
+                      class: "card text-bg-dark" do |f| %>
+          <div class="card-body">
+            <h3 class="h6">Comentar</h3>
+            <%= render "shared/errores", objeto: @comentario %>
+            <div class="mb-3">
+              <%= f.label :texto, "Tu opinión", class: "visually-hidden" %>
+              <%= f.text_area :texto, rows: 4, maxlength: 2000, class: clase_campo(@comentario, :texto),
+                                      placeholder: "¿Qué harías tú? ¿Qué te ha funcionado en casos parecidos?" %>
+            </div>
+            <div class="mb-3">
+              <%= f.label :treatment_ids, "Técnicas que sugieres (opcional)", class: "form-label" %>
+              <%= f.collection_select :treatment_ids, @tecnicas, :id, :nombre, {}, multiple: true, size: 6,
+                                      class: "form-select", aria: { describedby: "ayuda-tecnicas" } %>
+              <div class="form-text" id="ayuda-tecnicas">
+                Ctrl/Cmd + clic para elegir varias (hasta <%= Comentario::MAX_TECNICAS %>). Son las del catálogo.
+              </div>
+            </div>
+            <%= f.submit "Publicar comentario", class: "btn btn-success" %>
+          </div>
+        <% end %>
+      <% end %>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# Arranca el servidor de desarrollo y recompila el CSS (Sass) cada vez que cambia.
+# Es un script Ruby en lugar de foreman para que funcione igual en Windows, Linux y macOS.
+# Uso: bin/dev   (en Windows: ruby bin/dev). Los argumentos se pasan a "rails server".
+require "rbconfig"
+
+APP_ROOT = File.expand_path("..", __dir__)
+RAILS = [ RbConfig.ruby, File.join(APP_ROOT, "bin", "rails") ]
+
+Dir.chdir(APP_ROOT)
+system(*RAILS, "dartsass:build", exception: true)
+
+procesos = [
+  Process.spawn(*RAILS, "dartsass:watch"),
+  Process.spawn(*RAILS, "server", *ARGV)
+]
+
+begin
+  Process.wait(procesos.last)
+rescue Interrupt
+  # Ctrl+C: la consola ya lo propaga a los procesos hijos.
+ensure
+  procesos.each { |pid| Process.kill(Gem.win_platform? ? "KILL" : "TERM", pid) rescue nil }
+  Process.waitall
+end

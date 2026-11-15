@@ -1,0 +1,27 @@
+<% content_for :title, "Fusionar #{tipo_elemento}" %>
+
+<h1 class="h3 mb-1">Fusionar «<%= @elemento.nombre %>»</h1>
+<p class="text-body-secondary mb-4">
+  Se usa en <%= texto_usos(@usos) %>. Al fusionarla con otra <%= tipo_elemento %>, todos esos usos pasan a la
+  elegida y «<%= @elemento.nombre %>» se borra del catálogo. No se puede deshacer, y queda registrado.
+</p>
+
+<%= form_with url: ruta_fusionar, method: :post, id: "formulario-fusion",
+              data: { turbo_confirm: "¿Seguro que quieres fusionar «#{@elemento.nombre}»? No se puede deshacer." } do |f| %>
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <%= f.label :destino_id, "Fusionar con", class: "form-label" %>
+      <%= f.select :destino_id, @destinos.map { |destino| [ destino.nombre, destino.id ] },
+                   { include_blank: "Elige la #{tipo_elemento} que se queda…" }, class: "form-select" %>
+      <div class="form-text">
+        La que elijas conserva su nombre y su descripción (si no tiene descripción, se queda con la de
+        «<%= @elemento.nombre %>»).
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Fusionar", class: "btn btn-danger" %>
+    <%= link_to "Cancelar", catalogo_path, class: "btn btn-outline-light" %>
+  </div>
+<% end %>

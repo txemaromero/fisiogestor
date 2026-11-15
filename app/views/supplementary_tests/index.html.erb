@@ -1,0 +1,62 @@
+<% content_for :title, "Pruebas complementarias" %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">Pruebas complementarias de la visita del <%= fecha_o_guion(@visit.fecha) %></h1>
+  <div class="d-flex gap-2">
+    <%= link_to "Añadir prueba", new_visit_supplementary_test_path(@visit), class: "btn btn-success" %>
+    <%= link_to "Volver a la visita", @visit, class: "btn btn-outline-light" %>
+  </div>
+</div>
+
+<% if @supplementary_tests.any? %>
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle" id="pruebas">
+      <thead>
+        <tr>
+          <th>Tipo de prueba</th>
+          <th>Resumen</th>
+          <th>Escaneado</th>
+          <th class="text-center">Editar</th>
+          <th class="text-center">Borrar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @supplementary_tests.each do |prueba| %>
+          <tr id="<%= dom_id(prueba) %>">
+            <td><%= etiqueta_enum(:test_type, prueba.tipo_prueba) %></td>
+            <td><%= prueba.resumen %></td>
+            <td class="escaneado">
+              <span class="font-monospace small"><%= prueba.escaneado %></span>
+              <% if prueba.archivo.attached? %>
+                <span class="small text-body-secondary">
+                  (<%= prueba.formato_archivo %>, <%= number_to_human_size(prueba.archivo.blob.byte_size) %>)
+                </span>
+                <div class="d-flex gap-2 mt-1">
+                  <%# Sin Turbo: son ficheros, no páginas. %>
+                  <%= link_to "Ver", archivo_visit_supplementary_test_path(@visit, prueba),
+                              class: "btn btn-sm btn-outline-light", target: "_blank", rel: "noopener",
+                              data: { turbo: false }, aria: { label: "Ver el fichero #{prueba.escaneado}" } %>
+                  <%= link_to "Descargar", archivo_visit_supplementary_test_path(@visit, prueba, descargar: 1),
+                              class: "btn btn-sm btn-outline-light", download: prueba.escaneado,
+                              data: { turbo: false }, aria: { label: "Descargar el fichero #{prueba.escaneado}" } %>
+                </div>
+              <% else %>
+                <span class="small text-body-secondary">(sin fichero)</span>
+              <% end %>
+            </td>
+            <td class="text-center">
+              <%= link_to "Editar", edit_visit_supplementary_test_path(@visit, prueba), class: "btn btn-sm btn-outline-success" %>
+            </td>
+            <td class="text-center">
+              <%= button_to "Borrar", visit_supplementary_test_path(@visit, prueba), method: :delete,
+                            class: "btn btn-sm btn-outline-danger",
+                            form: { data: { turbo_confirm: "¿Seguro que quieres borrar esta prueba?" } } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="text-body-secondary">Esta visita no tiene pruebas complementarias.</p>
+<% end %>

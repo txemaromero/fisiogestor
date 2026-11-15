@@ -1,0 +1,40 @@
+<%# Formulario de un diagnóstico de una visita guardada. La enfermedad se elige del catálogo o, con «Otra…»,
+    se escribe una nueva (el campo del nombre solo se muestra entonces: enfermedad_nueva_controller.js). %>
+<% otra = @eleccion == Disease::OTRA %>
+<%= form_with model: diagnosis, url: diagnosis.new_record? ? visit_diagnoses_path(@visit) : diagnosis_path(diagnosis),
+              id: "formulario-diagnostico", data: { controller: "enfermedad-nueva" } do |f| %>
+  <%= render "shared/errores", objeto: diagnosis %>
+
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= f.label :disease_id, "Enfermedad", class: "form-label" %>
+          <%= f.select :disease_id,
+                       @diseases.map { |disease| [ disease.nombre, disease.id ] } + [ [ "Otra…", Disease::OTRA ] ],
+                       { include_blank: "Selecciona una enfermedad…", selected: @eleccion },
+                       class: clase_campo(diagnosis, :disease, "form-select"),
+                       data: { enfermedad_nueva_target: "eleccion", action: "enfermedad-nueva#cambiar" } %>
+        </div>
+        <div class="col-md-6" data-enfermedad-nueva-target="grupo" <%= "hidden" unless otra %>>
+          <label for="diagnosis_nueva_enfermedad" class="form-label">Nombre de la nueva enfermedad</label>
+          <%= text_field_tag "diagnosis[nueva_enfermedad]", @nueva_enfermedad, id: "diagnosis_nueva_enfermedad",
+                             class: "form-control", disabled: !otra, data: { enfermedad_nueva_target: "nombre" } %>
+        </div>
+        <div class="col-12">
+          <%= f.label :descripcion, class: "form-label" %>
+          <%= f.text_area :descripcion, rows: 4, class: clase_campo(diagnosis, :descripcion) %>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <%= f.label :sesiones_recomendadas, class: "form-label" %>
+          <%= f.number_field :sesiones_recomendadas, min: 1, step: 1, class: clase_campo(diagnosis, :sesiones_recomendadas) %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", visit_path(@visit), class: "btn btn-outline-light" %>
+  </div>
+<% end %>

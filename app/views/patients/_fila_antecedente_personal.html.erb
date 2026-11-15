@@ -1,0 +1,17 @@
+<%# Fila editable de un antecedente personal dentro del formulario del paciente (f = fields_for). %>
+<%= tag.tr hidden: f.object.marked_for_destruction?, data: { nuevo: f.object.new_record? } do %>
+  <td>
+    <%= f.select :tipo, opciones_enum(:background_type, MedicalBackground::BACKGROUND_TYPE.values),
+                 { include_blank: "Selecciona…" },
+                 aria: { label: "Tipo" }, class: clase_campo(f.object, :tipo, "form-select form-select-sm") %>
+  </td>
+  <td>
+    <%= f.text_field :descripcion, aria: { label: "Descripción" },
+                                   class: clase_campo(f.object, :descripcion, "form-control form-control-sm") %>
+  </td>
+  <td class="text-end">
+    <%= f.hidden_field :id if f.object.persisted? %>
+    <%= f.hidden_field :_destroy %>
+    <button type="button" class="btn btn-sm btn-outline-danger" data-action="filas-anidadas#borrarFila">Borrar</button>
+  </td>
+<% end %>

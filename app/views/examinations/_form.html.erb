@@ -1,0 +1,27 @@
+<%= form_with model: examination, url: visit_examination_path(@visit) do |f| %>
+  <%= render "shared/errores", objeto: examination %>
+
+  <div class="card text-bg-dark mb-3">
+    <div class="card-body">
+      <% Examination::GRUPOS.each do |grupo, campos| %>
+        <fieldset class="mb-3">
+          <legend class="h6 text-success-emphasis"><%= grupo %></legend>
+          <div class="row g-3">
+            <% campos.each do |campo| %>
+              <div class="col-md-6">
+                <%= f.label campo, class: "form-label" %>
+                <%= f.text_field campo, class: clase_campo(examination, campo) %>
+              </div>
+            <% end %>
+          </div>
+        </fieldset>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", examination.persisted? ? visit_examination_path(@visit) : visit_path(@visit),
+                class: "btn btn-outline-light" %>
+  </div>
+<% end %>

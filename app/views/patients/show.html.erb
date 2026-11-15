@@ -1,0 +1,136 @@
+<% content_for :title, "Mostrar paciente" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card text-bg-dark shadow-sm" id="ficha-paciente">
+      <div class="card-header">
+        <h1 class="h4 mb-0">Mostrar paciente</h1>
+      </div>
+
+      <div class="card-body">
+        <%# Los datos sensibles (nombre y apellidos) solo los ve el osteópata al que pertenece el paciente. %>
+        <% if @patient.pertenece_a?(current_osteopath) %>
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Nombre</dt>
+            <dd class="col-sm-8"><%= @patient.nombre %></dd>
+            <dt class="col-sm-4">Apellidos</dt>
+            <dd class="col-sm-8"><%= @patient.apellidos %></dd>
+            <dt class="col-sm-4">Edad</dt>
+            <dd class="col-sm-8"><%= @patient.edad %> años</dd>
+            <dt class="col-sm-4">Sexo</dt>
+            <dd class="col-sm-8"><%= etiqueta_enum(:sex_type, @patient.sexo) %></dd>
+            <dt class="col-sm-4">Comparte sus datos</dt>
+            <dd class="col-sm-8 mb-0" id="consentimiento-paciente">
+              <% if @patient.consiente_compartir? %>
+                Sí, sin nombre ni apellidos<%= ", desde el #{l(@patient.consentimiento_actualizado_at.to_date)}" if @patient.consentimiento_actualizado_at %>
+              <% else %>
+                No: sus datos clínicos solo los ves tú<%= " (lo retiró el #{l(@patient.consentimiento_actualizado_at.to_date)})" if @patient.consentimiento_actualizado_at %>
+              <% end %>
+            </dd>
+          </dl>
+        <% else %>
+          <p class="text-body-secondary small">
+            Este paciente pertenece a otro osteópata: su nombre y apellidos no se muestran.
+          </p>
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Edad</dt>
+            <dd class="col-sm-8"><%= @patient.edad %> años</dd>
+            <dt class="col-sm-4">Sexo</dt>
+            <dd class="col-sm-8 mb-0"><%= etiqueta_enum(:sex_type, @patient.sexo) %></dd>
+          </dl>
+        <% end %>
+      </div>
+
+      <div class="card-footer d-flex flex-wrap gap-2">
+        <%= link_to "Mostrar antecedentes", ruta_antecedentes(@patient), class: "btn btn-success" %>
+        <% if @patient.pertenece_a?(current_osteopath) %>
+          <%= link_to "Editar", edit_patient_path(@patient), class: "btn btn-outline-success" %>
+          <%= link_to "Exportar datos", exportar_patient_path(@patient), class: "btn btn-outline-light",
+                      title: "Todos los datos del paciente en un fichero JSON", data: { turbo: false } %>
+          <%= button_to "Borrar", @patient, method: :delete, class: "btn btn-outline-danger",
+                        form: { class: "ms-auto", data: { turbo_confirm: confirmacion_borrar_paciente(@patient) } } %>
+        <% end %>
+      </div>
+    </div>
+
+    <% if @patient.pertenece_a?(current_osteopath) %>
+      <section class="mt-4" id="visitas-paciente">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="h5 mb-0">Visitas</h2>
+          <%= link_to "Crear visita", crear_visita_path(patient_id: @patient.id), class: "btn btn-sm btn-success" %>
+        </div>
+        <% if @visits.any? %>
+          <div class="table-responsive">
+            <table class="table table-dark table-striped align-middle">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Diagnóstico</th>
+                  <th class="text-center">Sesiones</th>
+                  <th class="text-center">Ver</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @visits.each do |visita| %>
+                  <tr>
+                    <td><%= fecha_o_guion(visita.fecha) %></td>
+                    <td><%= valor_o_guion(visita.diagnoses.map { |diagnostico| diagnostico.disease.nombre }.join(", ")) %></td>
+                    <td class="text-center"><%= progreso_visita(visita) %></td>
+                    <td class="text-center"><%= link_to "Ver", visit_path(visita), class: "btn btn-sm btn-success" %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-body-secondary">Este paciente todavía no tiene visitas.</p>
+        <% end %>
+      </section>
+
+      <% unless @grafica.vacia? %>
+        <section class="mt-4" id="evolucion-dolor">
+          <h2 class="h5">Evolución del dolor</h2>
+          <div class="card text-bg-dark">
+            <div class="card-body">
+              <%= render "patients/grafica_dolor", grafica: @grafica %>
+            </div>
+          </div>
+        </section>
+      <% end %>
+
+      <%# Registro de accesos (D85): quién ha abierto la ficha o los antecedentes siendo de otro osteópata. %>
+      <section class="mt-4" id="accesos-ficha">
+        <h2 class="h5">Accesos de otros osteópatas</h2>
+        <% if @accesos.any? %>
+          <% if @total_accesos > @accesos.size %>
+            <p class="small text-body-secondary">
+              Los <%= @accesos.size %> más recientes de <%= @total_accesos %>. «Exportar datos» los incluye todos.
+            </p>
+          <% end %>
+          <div class="table-responsive">
+            <table class="table table-dark table-striped table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Fecha y hora</th>
+                  <th>Osteópata</th>
+                  <th>Página</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @accesos.each do |acceso| %>
+                  <tr>
+                    <td><%= l(acceso.created_at, format: "%d/%m/%Y %H:%M") %></td>
+                    <td><%= acceso.osteopath.nombre_completo %></td>
+                    <td><%= acceso.nombre_pagina %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-body-secondary">Ningún otro osteópata ha abierto la ficha de este paciente.</p>
+        <% end %>
+      </section>
+    <% end %>
+  </div>
+</div>

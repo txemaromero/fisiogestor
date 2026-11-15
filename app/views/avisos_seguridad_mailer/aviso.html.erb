@@ -1,0 +1,12 @@
+<p>Hola, <%= @osteopata.nombre %>:</p>
+
+<p><%= @texto %></p>
+
+<% if @detalle %>
+  <p><%= @detalle %></p>
+<% end %>
+
+<p>Fecha: <%= l(@momento, format: "%d/%m/%Y a las %H:%M") %>.</p>
+
+<p>Si has sido tú, no tienes que hacer nada. Si no, alguien conoce tu clave:
+<%= link_to "cámbiala ahora", new_osteopath_password_url %> y avisa a un administrador de RedSocialFisios.</p>

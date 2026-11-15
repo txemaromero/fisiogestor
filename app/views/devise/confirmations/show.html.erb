@@ -1,0 +1,38 @@
+<%# El enlace del correo pide la clave de la cuenta para confirmar el email (D104). %>
+<% content_for :title, "Confirmar el email" %>
+
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-6 col-lg-4">
+    <div class="card text-bg-dark shadow">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3 text-center">Confirma tu email</h1>
+        <p class="small text-body-secondary">
+          Para terminar el registro de <strong class="text-body"><%= resource.nombre_completo %></strong> con el
+          email <strong class="text-body"><%= resource.email %></strong>, escribe la clave que elegiste al registrarte.
+        </p>
+
+        <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :patch }) do |f| %>
+          <% if resource.errors.any? %>
+            <div class="alert alert-danger" id="errores" role="alert"><%= resource.errors.full_messages.to_sentence %></div>
+          <% end %>
+          <%= hidden_field_tag :confirmation_token, params[:confirmation_token] %>
+
+          <div class="mb-4">
+            <%= f.label :password, "Clave", class: "form-label" %>
+            <%= f.password_field :password, autofocus: true, autocomplete: "current-password", required: true,
+                                            class: "form-control#{' is-invalid' if resource.errors.any?}" %>
+          </div>
+
+          <%= f.submit "Confirmar mi email", class: "btn btn-success w-100" %>
+        <% end %>
+
+        <p class="small text-body-secondary mt-3 mb-0">
+          Si no te has registrado tú, no hagas nada: sin confirmar, la cuenta no se puede usar.
+        </p>
+        <p class="mt-3 mb-0 text-center">
+          <%= link_to "¿Has olvidado tu clave?", new_password_path(resource_name), class: "text-success-emphasis" %>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

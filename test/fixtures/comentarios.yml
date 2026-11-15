@@ -1,0 +1,6 @@
+# Maria comenta el caso de Paco y sugiere una técnica.
+comentario_maria:
+  caso: caso_pepe
+  osteopath: maria
+  texto: Yo añadiría estiramientos de la columna.
+  treatments: estiramiento

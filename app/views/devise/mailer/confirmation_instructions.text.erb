@@ -1,0 +1,8 @@
+Hola, <%= @resource.nombre %>:
+
+Para terminar tu registro en RedSocialFisios, confirma que este email es tuyo: abre este enlace, que caduca
+en 3 días, y escribe la clave que elegiste al registrarte.
+
+<%= confirmation_url(@resource, confirmation_token: @token) %>
+
+Si no te has registrado tú, ignora este correo: sin confirmar, la cuenta no se puede usar.

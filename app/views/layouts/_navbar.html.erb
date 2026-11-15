@@ -1,0 +1,81 @@
+<nav class="navbar navbar-expand-lg bg-success" data-bs-theme="dark">
+  <div class="container-fluid">
+    <%= link_to "RedSocialFisios", root_path, class: "navbar-brand fw-bold" %>
+
+    <% if osteopath_signed_in? %>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-principal"
+              aria-controls="navbar-principal" aria-expanded="false" aria-label="Mostrar menú">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbar-principal">
+        <ul class="navbar-nav me-auto">
+          <%# Hasta activar el segundo factor solo se puede llegar al alta o salir (D84). %>
+          <% if current_osteopath.otp_activado? %>
+          <li class="nav-item dropdown">
+            <%= tag.a "Pacientes", href: "#", role: "button", aria: { expanded: false },
+                      class: [ "nav-link dropdown-toggle", { active: controller_name == "patients" } ],
+                      data: { bs_toggle: "dropdown" } %>
+            <ul class="dropdown-menu">
+              <li><%= link_to "Mostrar pacientes", patients_path, class: "dropdown-item" %></li>
+              <li><%= link_to "Crear paciente", new_patient_path, class: "dropdown-item" %></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <%= enlace_navbar "Crear visita", crear_visita_path, controller_name == "visits" && action_name.in?(%w[new create]) %>
+          </li>
+          <li class="nav-item"><%= enlace_navbar "Agenda", agenda_path, controller_name == "agenda" %></li>
+          <li class="nav-item">
+            <%= enlace_navbar "Filtrar tratamientos", filtrar_tratamientos_path, controller_name == "treatments" %>
+          </li>
+          <li class="nav-item"><%= enlace_navbar "Informes", informes_path, controller_name == "informes" %></li>
+          <li class="nav-item">
+            <%= enlace_navbar "Casos clínicos", casos_path, controller_name.in?(%w[casos comentarios osteopatas]) %>
+          </li>
+          <% if current_osteopath.admin? %>
+            <%# Pendientes: osteópatas por verificar (D88) y contenido denunciado (D91). %>
+            <% por_verificar = Osteopath.pendientes_de_verificar.count %>
+            <% denunciados = Denuncia.pendientes.group(:denunciable_type, :denunciable_id).count.size %>
+            <li class="nav-item dropdown">
+              <%= tag.a href: "#", role: "button", aria: { expanded: false }, data: { bs_toggle: "dropdown" },
+                        class: [ "nav-link dropdown-toggle",
+                                 { active: controller_path.start_with?("catalogo/") || controller_name.in?(%w[verificaciones moderacion]) } ] do %>
+                Administración
+                <% if (por_verificar + denunciados).positive? %>
+                  <span class="badge rounded-pill text-bg-warning" id="pendientes-administracion"><%= por_verificar + denunciados %></span>
+                <% end %>
+              <% end %>
+              <ul class="dropdown-menu">
+                <li><%= link_to "Catálogo", catalogo_path, class: "dropdown-item" %></li>
+                <li>
+                  <%= link_to verificaciones_path, class: "dropdown-item" do %>
+                    Profesionales<%= " (#{por_verificar} por verificar)" if por_verificar.positive? %>
+                  <% end %>
+                </li>
+                <li>
+                  <%= link_to moderacion_path, class: "dropdown-item" do %>
+                    Moderación<%= " (#{denunciados} por revisar)" if denunciados.positive? %>
+                  <% end %>
+                </li>
+              </ul>
+            </li>
+          <% end %>
+          <% end %>
+        </ul>
+
+        <ul class="navbar-nav align-items-lg-center">
+          <li class="nav-item">
+            <% if current_osteopath.otp_activado? %>
+              <%= enlace_navbar current_osteopath.nombre_completo, cuenta_path, controller_name == "cuenta" %>
+            <% else %>
+              <span class="navbar-text me-lg-2"><%= current_osteopath.nombre_completo %></span>
+            <% end %>
+          </li>
+          <li class="nav-item">
+            <%= button_to "Logout", destroy_osteopath_session_path, method: :delete, class: "nav-link" %>
+          </li>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</nav>

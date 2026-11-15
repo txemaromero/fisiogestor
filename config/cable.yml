@@ -1,0 +1,11 @@
+development:
+  adapter: async
+
+test:
+  adapter: test
+
+# La aplicación no usa Action Cable (no hay canales ni actualizaciones en tiempo real), así que en
+# producción basta el adaptador en memoria. Si algún día se usa, configurar solid_cable o Redis con una
+# REDIS_URL obligatoria (sin valor por defecto) y con contraseña.
+production:
+  adapter: async
